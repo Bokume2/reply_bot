@@ -54,7 +54,6 @@ func (repo BotRepository) updateAvatarOfBot(bot *activitypub.Actor) (*activitypu
 		URL:       url,
 	}
 	bot.Icon = avatar
-	fmt.Print("updated: ", bot)
 	var botItem activitypub.Item
 	botItem, err = repo.store.Save(bot)
 	err = activitypub.OnActor(botItem, func(a *activitypub.Actor) error {
