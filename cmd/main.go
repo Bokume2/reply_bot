@@ -19,8 +19,7 @@ func main() {
 
 	nic := controller.NewNodeInfoController()
 	wkc := controller.NewWellKnownController()
-	buc := usecase.NewBotUseCase(bot.NewBotRepository(storage.DataStore))
-	bc := controller.NewBotController(buc)
+	bc := controller.NewBotController(usecase.NewBotUseCase(bot.NewBotRepository(storage.DataStore)))
 
 	e := router.NewRouter(echo.New(), bc, nic, wkc).Setup()
 
