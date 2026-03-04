@@ -1,0 +1,21 @@
+{
+  "openRegistrations": false,
+  "protocols": [
+    "activitypub"
+  ],
+  "software": {
+    "name": "reply-bot",
+    "version": "{{.Version}}"
+  },
+  "usage": {
+    "users": {
+      "total": 1
+    }
+  },
+  "services": {
+    "inbound": [],
+    "outbound": []
+  },
+  "metadata": {},
+  "version": "2.1"
+}
