@@ -9,13 +9,15 @@ import (
 
 type Router struct {
 	echo                *echo.Echo
+	botController       *controller.BotController
 	nodeIndoController  *controller.NodeInfoController
 	wellKnownController *controller.WellKnownController
 }
 
-func NewRouter(e *echo.Echo, nic *controller.NodeInfoController, wkc *controller.WellKnownController) *Router {
+func NewRouter(e *echo.Echo, bc *controller.BotController, nic *controller.NodeInfoController, wkc *controller.WellKnownController) *Router {
 	return &Router{
 		echo:                e,
+		botController:       bc,
 		nodeIndoController:  nic,
 		wellKnownController: wkc,
 	}
@@ -24,6 +26,14 @@ func NewRouter(e *echo.Echo, nic *controller.NodeInfoController, wkc *controller
 func (r *Router) Setup() *echo.Echo {
 	r.echo.Use(middleware.RequestLogger())
 	r.echo.Use(middleware.Recover())
+
+	// public files
+	r.echo.Static("/public", "public")
+
+	// bots
+	botsRouter := r.echo.Group("/bots")
+	botsRouter.Use(controller.CheckBotExistance)
+	botsRouter.GET("/:username", r.botController.GetByUserName)
 
 	// nodeinfo
 	r.echo.GET("/.well-known/nodeinfo", r.wellKnownController.GetNodeInfo)
