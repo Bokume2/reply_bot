@@ -3,9 +3,11 @@ module reply_bot
 go 1.25.6
 
 require (
+	git.sr.ht/~mariusor/lw v0.0.0-20250325163623-1639f3fb0e0d
 	git.sr.ht/~mariusor/storage-all v0.0.0-20260304100324-029630133bbf
 	github.com/go-ap/activitypub v0.0.0-20260217161652-7bec47e1f870
-	github.com/go-ap/processing v0.0.0-20260228143016-4db650cfe1ee
+	github.com/go-ap/processing v0.0.0-20260304094540-25a8f90f336f
+	github.com/go-ap/webfinger v0.0.0-20260304100518-1631da89fa9a
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v5 v5.0.4
 	golang.org/x/text v0.34.0
@@ -14,7 +16,6 @@ require (
 require (
 	git.sr.ht/~mariusor/cache v0.0.0-20250616110250-18a60a6f9473 // indirect
 	git.sr.ht/~mariusor/go-xsd-duration v0.0.0-20220703122237-02e73435a078 // indirect
-	git.sr.ht/~mariusor/lw v0.0.0-20250325163623-1639f3fb0e0d // indirect
 	git.sr.ht/~mariusor/mask v0.0.0-20250114195353-98705a6977b7 // indirect
 	git.sr.ht/~mariusor/ssm v0.0.0-20260220115209-1adc83acc174 // indirect
 	github.com/RoaringBitmap/roaring v1.9.4 // indirect
@@ -23,8 +24,9 @@ require (
 	github.com/dgraph-io/badger/v4 v4.9.1 // indirect
 	github.com/dgraph-io/ristretto/v2 v2.4.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/go-ap/auth v0.0.0-20260228142952-ef429d5d44f6 // indirect
 	github.com/go-ap/cache v0.0.0-20260217161741-05770d6d0773 // indirect
-	github.com/go-ap/client v0.0.0-20260228142922-4ede0c306114 // indirect
+	github.com/go-ap/client v0.0.0-20260304094324-856e00b565b2 // indirect
 	github.com/go-ap/errors v0.0.0-20260208110149-e1b309365966 // indirect
 	github.com/go-ap/filters v0.0.0-20260304093742-67453e8a9d1a // indirect
 	github.com/go-ap/jsonld v0.0.0-20251216162253-e38fa664ea77 // indirect
