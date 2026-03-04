@@ -18,8 +18,9 @@ func NewBotController(buc usecase.IBotUseCase) *BotController {
 	}
 }
 
-func CheckBotExistance(next echo.HandlerFunc) echo.HandlerFunc {
+func BotsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c *echo.Context) error {
+		c.Response().Header().Set(echo.HeaderContentType, "application/activity+json")
 		err := next(c)
 		if err == errors.ErrBotNotFound {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())

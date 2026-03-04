@@ -33,7 +33,7 @@ func (r *Router) Setup() *echo.Echo {
 
 	// bots
 	botsRouter := r.echo.Group("/bots")
-	botsRouter.Use(controller.CheckBotExistance)
+	botsRouter.Use(controller.BotsMiddleware)
 	botsRouter.GET("/:username", r.botController.GetByUserName)
 	// specified bot
 	botRouter := botsRouter.Group("/:username")
