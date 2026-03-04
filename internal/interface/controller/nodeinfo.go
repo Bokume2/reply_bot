@@ -9,6 +9,10 @@ import (
 
 type NodeInfoController struct{}
 
+func NewNodeInfoController() *NodeInfoController {
+	return &NodeInfoController{}
+}
+
 func (nic NodeInfoController) GetNodeInfoContent(c *echo.Context) error {
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	return c.String(http.StatusOK, template.NodeInfo)

@@ -12,6 +12,10 @@ import (
 
 type WellKnownController struct{}
 
+func NewWellKnownController() *WellKnownController {
+	return &WellKnownController{}
+}
+
 func (wkc WellKnownController) GetNodeInfo(c *echo.Context) error {
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	return c.String(http.StatusOK, template.WellKnownNodeInfo)

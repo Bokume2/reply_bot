@@ -17,8 +17,8 @@ func main() {
 	template.LoadTemplate()
 	storage.InitStorage()
 
-	nic := &controller.NodeInfoController{}
-	wkc := &controller.WellKnownController{}
+	nic := controller.NewNodeInfoController()
+	wkc := controller.NewWellKnownController()
 	buc := usecase.NewBotUseCase(bot.NewBotRepository(storage.DataStore))
 	bc := controller.NewBotController(buc)
 
