@@ -9,6 +9,7 @@ import (
 
 type IBotUseCase interface {
 	GetByUserName(ctx context.Context, username string) (*activitypub.Actor, error)
+	GetOutBox(ctx context.Context, username string) (*activitypub.OrderedCollection, error)
 }
 
 type botUseCase struct {
@@ -21,6 +22,14 @@ func NewBotUseCase(repo repository.BotRepository) IBotUseCase {
 
 func (buc botUseCase) GetByUserName(ctx context.Context, username string) (*activitypub.Actor, error) {
 	bot, err := buc.repo.GetByUserName(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	return bot, nil
+}
+
+func (buc botUseCase) GetOutBox(ctx context.Context, username string) (*activitypub.OrderedCollection, error) {
+	bot, err := buc.repo.GetOutBox(ctx, username)
 	if err != nil {
 		return nil, err
 	}

@@ -35,3 +35,11 @@ func (bc BotController) GetByUserName(c *echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, bot)
 }
+
+func (bc BotController) GetOutBox(c *echo.Context) error {
+	outBox, err := bc.buc.GetOutBox(c.Request().Context(), c.Param("username"))
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, outBox)
+}

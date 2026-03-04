@@ -8,4 +8,5 @@ import (
 
 type BotRepository interface {
 	GetByUserName(ctx context.Context, username string) (*activitypub.Actor, error)
+	GetOutBox(ctx context.Context, username string) (*activitypub.OrderedCollection, error)
 }

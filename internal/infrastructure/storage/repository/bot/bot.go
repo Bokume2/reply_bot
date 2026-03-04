@@ -38,6 +38,22 @@ func (repo BotRepository) GetByUserName(ctx context.Context, username string) (*
 	return botActor, nil
 }
 
+func (repo BotRepository) GetOutBox(ctx context.Context, username string) (*activitypub.OrderedCollection, error) {
+	bot, err := repo.GetByUserName(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	var outBox *activitypub.OrderedCollection
+	err = activitypub.OnOrderedCollection(bot.Outbox, func(oc *activitypub.OrderedCollection) error {
+		outBox = oc
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return outBox, nil
+}
+
 func (repo BotRepository) updateAvatarOfBot(bot *activitypub.Actor) (*activitypub.Actor, error) {
 	if !activitypub.IsNil(bot.Image) {
 		return bot, nil
