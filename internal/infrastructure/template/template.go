@@ -24,7 +24,9 @@ func LoadTemplate() {
 		log.Fatal(err)
 	}
 	wknibuf := new(strings.Builder)
-	err = wknit.Execute(wknibuf, wellKnownNodeInfoTmplData{LocalDomain: config.LOCAL_DOMAIN})
+	err = wknit.Execute(wknibuf, wellKnownNodeInfoTmplData{
+		NodeInfoLink: config.LOCAL_ORIGIN.AddPath("/nodeinfo/2.1").String(),
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,7 +47,7 @@ func LoadTemplate() {
 }
 
 type wellKnownNodeInfoTmplData struct {
-	LocalDomain string
+	NodeInfoLink string
 }
 
 type nodeInfoTmplData struct {

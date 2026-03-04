@@ -47,7 +47,7 @@ func (repo BotRepository) updateAvatarOfBot(bot *activitypub.Actor) (*activitypu
 	if err != nil || info.IsDir() {
 		return bot, nil
 	}
-	url := activitypub.IRI(fmt.Sprintf("https://%s/%s", config.LOCAL_DOMAIN, path))
+	url := config.LOCAL_ORIGIN.AddPath(path)
 	avatar := activitypub.Image{
 		Type:      activitypub.ImageType,
 		MediaType: activitypub.MimeType("image/jpeg"),
