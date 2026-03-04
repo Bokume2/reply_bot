@@ -3,6 +3,7 @@ package router
 import (
 	"reply_bot/internal/interface/controller"
 
+	"github.com/go-ap/webfinger"
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
 )
@@ -38,6 +39,9 @@ func (r *Router) Setup() *echo.Echo {
 	// nodeinfo
 	r.echo.GET("/.well-known/nodeinfo", r.wellKnownController.GetNodeInfo)
 	r.echo.GET("/nodeinfo/2.1", r.nodeIndoController.GetNodeInfoContent)
+
+	// webfinger
+	r.echo.GET(webfinger.WellKnownWebFingerPath, r.wellKnownController.GetWebfinger)
 
 	return r.echo
 }
