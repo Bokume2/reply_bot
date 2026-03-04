@@ -37,3 +37,6 @@ public/
 # Common Local Storage
 storage/
 !internal/**
+
+# Bot Configurations
+reply_dialogues.yaml

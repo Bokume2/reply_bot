@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/go-ap/activitypub"
+	yaml "github.com/goccy/go-yaml"
 	"github.com/joho/godotenv"
 )
 
@@ -16,6 +17,8 @@ var (
 	BOT_PREFERRED_USERNAME string
 	DATA_STORAGE_PATH      string
 )
+
+var Dialogues []ReplyDialogue
 
 func LoadEnv() {
 	if err := godotenv.Load(); err != nil {
@@ -29,4 +32,18 @@ func LoadEnv() {
 	BOT_NAME = os.Getenv("BOT_NAME")
 	BOT_PREFERRED_USERNAME = os.Getenv("BOT_PREFERRED_USERNAME")
 	DATA_STORAGE_PATH = os.Getenv("DATA_STORAGE_PATH")
+
+	dialoguesFilePath := "reply_dialogues.yaml"
+	rawDialogues, err := os.ReadFile(dialoguesFilePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err = yaml.Unmarshal(rawDialogues, &Dialogues); err != nil {
+		log.Fatal(err)
+	}
+}
+
+type ReplyDialogue struct {
+	Call  string `yaml:"call"`
+	Reply string `yaml:"reply"`
 }
