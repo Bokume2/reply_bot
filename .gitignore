@@ -40,3 +40,6 @@ storage/
 
 # Bot Configurations
 reply_dialogues.yaml
+
+# Temporary files
+tmp*
