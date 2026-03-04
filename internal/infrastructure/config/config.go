@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	LOCAL_DOMAIN       string
-	BOT_NAME           string
-	BOT_PREFERRED_NAME string
-	DATA_STORAGE_PATH  string
+	LOCAL_DOMAIN           string
+	BOT_NAME               string
+	BOT_PREFERRED_USERNAME string
+	DATA_STORAGE_PATH      string
 )
 
 func LoadEnv() {
@@ -21,6 +21,6 @@ func LoadEnv() {
 
 	LOCAL_DOMAIN = os.Getenv("LOCAL_DOMAIN")
 	BOT_NAME = os.Getenv("BOT_NAME")
-	BOT_PREFERRED_NAME = os.Getenv("BOT_PREFERRED_NAME")
+	BOT_PREFERRED_USERNAME = os.Getenv("BOT_PREFERRED_USERNAME")
 	DATA_STORAGE_PATH = os.Getenv("DATA_STORAGE_PATH")
 }
