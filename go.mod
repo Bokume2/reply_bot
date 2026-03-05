@@ -7,6 +7,7 @@ require (
 	git.sr.ht/~mariusor/storage-all v0.0.0-20260304100324-029630133bbf
 	github.com/go-ap/activitypub v0.0.0-20260217161652-7bec47e1f870
 	github.com/go-ap/errors v0.0.0-20260208110149-e1b309365966
+	github.com/go-ap/httpsig v0.0.0-20221203064646-3647b4d88fdf
 	github.com/go-ap/processing v0.0.0-20260304094540-25a8f90f336f
 	github.com/go-ap/webfinger v0.0.0-20260304100518-1631da89fa9a
 	github.com/goccy/go-yaml v1.19.2

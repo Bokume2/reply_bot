@@ -30,6 +30,7 @@ func CreateBotActor() error {
 	storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Following.GetID()))
 	activitypub.Followers.AddTo(actor)
 	storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Followers.GetID()))
+	actor.PublicKey.ID = actor.ID.AddPath("/publickey")
 	item, err := storage.DataStore.Save(actor)
 	if err != nil {
 		return err

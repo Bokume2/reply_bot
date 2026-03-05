@@ -9,6 +9,7 @@ import (
 
 	apStorage "git.sr.ht/~mariusor/storage-all"
 	"github.com/go-ap/activitypub"
+	"github.com/go-ap/errors"
 )
 
 type BotRepository struct {
@@ -58,16 +59,8 @@ func (repo BotRepository) GetOutBox(ctx context.Context, username string) (*acti
 	return outBox, nil
 }
 
-func (repo BotRepository) AddInBox(ctx context.Context, username string, item *activitypub.Item) (*activitypub.OrderedCollection, error) {
+func (repo BotRepository) AddInBox(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.OrderedCollection, error) {
 	bot, err := repo.GetByUserName(ctx, username)
-	if err != nil {
-		return nil, err
-	}
-	var activity *activitypub.Activity
-	err = activitypub.OnActivity(*item, func(a *activitypub.Activity) error {
-		activity = a
-		return nil
-	})
 	if err != nil {
 		return nil, err
 	}
@@ -89,6 +82,41 @@ func (repo BotRepository) AddInBox(ctx context.Context, username string, item *a
 		return nil, err
 	}
 	return inbox, nil
+}
+
+func (repo BotRepository) AddOutBox(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.OrderedCollection, error) {
+	bot, err := repo.GetByUserName(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	outboxItem, err := repo.store.Load(bot.Outbox.GetID())
+	if err != nil {
+		return nil, err
+	}
+	var outbox *activitypub.OrderedCollection
+	err = activitypub.OnOrderedCollection(outboxItem, func(oc *activitypub.OrderedCollection) error {
+		e := oc.Append(*activity)
+		outbox = oc
+		return e
+	})
+	if err != nil {
+		return nil, err
+	}
+	_, err = repo.store.Save(outbox)
+	if err != nil {
+		return nil, err
+	}
+	return outbox, nil
+}
+
+func (repo BotRepository) DeleteFromOutBox(ctx context.Context, item *activitypub.Item) error {
+	_, err := repo.store.Load((*item).GetID())
+	if errors.IsNotFound(err) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+	return repo.store.Delete(*item)
 }
 
 func (repo BotRepository) updateAvatarOfBot(bot *activitypub.Actor) (*activitypub.Actor, error) {

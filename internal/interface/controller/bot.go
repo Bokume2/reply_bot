@@ -2,11 +2,15 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	domainErrors "reply_bot/internal/domain/errors"
 	"reply_bot/internal/usecase"
+	"reply_bot/internal/utils"
+	"strings"
 
 	"github.com/go-ap/activitypub"
+	"github.com/go-ap/httpsig"
 	"github.com/labstack/echo/v5"
 )
 
@@ -61,12 +65,29 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 		c.Response().Header().Del(echo.HeaderContentType)
 		return err
 	}
-	_, err := bc.buc.Reply(c.Request().Context(), c.Param("username"), item)
+	reply, to, err := bc.buc.Reply(c.Request().Context(), c.Param("username"), item)
 	if err != nil {
+		item, err := activitypub.To[activitypub.Item](reply)
+		bc.buc.CancelReply(c.Request().Context(), item)
 		c.Response().Header().Del(echo.HeaderContentType)
 		return err
 	}
+	if reply != nil {
+		err = bc.postActivity(reply, to)
+		if err != nil {
+			c.Response().Header().Del(echo.HeaderContentType)
+			return err
+		}
+	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (bc BotController) GetPubKey(c *echo.Context) error {
+	_, err := bc.buc.GetByUserName(c.Request().Context(), c.Param("username"))
+	if err != nil {
+		return err
+	}
+	return c.File(fmt.Sprintf("storage/cred/%s.pub", c.Param("username")))
 }
 
 type ActivityBinder struct{}
@@ -86,4 +107,35 @@ func (ab ActivityBinder) Bind(c *echo.Context, i any) error {
 		return echo.NewHTTPError(http.StatusUnsupportedMediaType, "failed to convert request body to activity")
 	}
 	return nil
+}
+
+func (bc BotController) postActivity(activity *activitypub.Activity, to *activitypub.Actor) error {
+	b, err := activitypub.MarshalJSON(activity)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequest("POST", to.Inbox.GetLink().String(), strings.NewReader(string(b)))
+	if err != nil {
+		return err
+	}
+	req.Header.Set(echo.HeaderContentType, "application/activity+json")
+	var username string
+	err = activitypub.OnActor(activity.Actor, func(a *activitypub.Actor) error {
+		username = a.PreferredUsername.String()
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	key, err := utils.ReadPrivKey(fmt.Sprintf("storage/cred/%s.key", username))
+	if err != nil {
+		return err
+	}
+	signer := httpsig.NewRSASHA256Signer("signer", key, nil)
+	err = signer.Sign(req)
+	if err != nil {
+		return err
+	}
+	_, err = new(http.Client).Do(req)
+	return err
 }
