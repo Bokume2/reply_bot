@@ -6,6 +6,7 @@ require (
 	git.sr.ht/~mariusor/lw v0.0.0-20250325163623-1639f3fb0e0d
 	git.sr.ht/~mariusor/storage-all v0.0.0-20260304100324-029630133bbf
 	github.com/go-ap/activitypub v0.0.0-20260217161652-7bec47e1f870
+	github.com/go-ap/errors v0.0.0-20260208110149-e1b309365966
 	github.com/go-ap/processing v0.0.0-20260304094540-25a8f90f336f
 	github.com/go-ap/webfinger v0.0.0-20260304100518-1631da89fa9a
 	github.com/goccy/go-yaml v1.19.2
@@ -29,7 +30,6 @@ require (
 	github.com/go-ap/auth v0.0.0-20260228142952-ef429d5d44f6 // indirect
 	github.com/go-ap/cache v0.0.0-20260217161741-05770d6d0773 // indirect
 	github.com/go-ap/client v0.0.0-20260304094324-856e00b565b2 // indirect
-	github.com/go-ap/errors v0.0.0-20260208110149-e1b309365966 // indirect
 	github.com/go-ap/filters v0.0.0-20260304093742-67453e8a9d1a // indirect
 	github.com/go-ap/jsonld v0.0.0-20251216162253-e38fa664ea77 // indirect
 	github.com/go-ap/storage-badger v0.0.0-20260304095632-5385679a7b6c // indirect
