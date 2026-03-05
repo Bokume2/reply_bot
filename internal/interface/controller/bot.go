@@ -32,6 +32,7 @@ func BotsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 func (bc BotController) GetByUserName(c *echo.Context) error {
 	bot, err := bc.buc.GetByUserName(c.Request().Context(), c.Param("username"))
 	if err != nil {
+		c.Response().Header().Del(echo.HeaderContentType)
 		return err
 	}
 	return c.JSON(http.StatusOK, bot)
@@ -40,6 +41,7 @@ func (bc BotController) GetByUserName(c *echo.Context) error {
 func (bc BotController) GetOutBox(c *echo.Context) error {
 	outBox, err := bc.buc.GetOutBox(c.Request().Context(), c.Param("username"))
 	if err != nil {
+		c.Response().Header().Del(echo.HeaderContentType)
 		return err
 	}
 	return c.JSON(http.StatusOK, outBox)
