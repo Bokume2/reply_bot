@@ -1,8 +1,9 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
-	"reply_bot/internal/domain/errors"
+	domainErrors "reply_bot/internal/domain/errors"
 	"reply_bot/internal/usecase"
 
 	"github.com/labstack/echo/v5"
@@ -22,7 +23,7 @@ func BotsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, "application/activity+json")
 		err := next(c)
-		if err == errors.ErrBotNotFound {
+		if errors.Is(err, domainErrors.ErrBotNotFound) {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
 		}
 		return err

@@ -2,9 +2,11 @@ package usecase
 
 import (
 	"context"
+	"reply_bot/internal/domain/errors"
 	"reply_bot/internal/domain/repository"
 
 	"github.com/go-ap/activitypub"
+	apErrors "github.com/go-ap/errors"
 )
 
 type IBotUseCase interface {
@@ -23,6 +25,9 @@ func NewBotUseCase(repo repository.BotRepository) IBotUseCase {
 func (buc botUseCase) GetByUserName(ctx context.Context, username string) (*activitypub.Actor, error) {
 	bot, err := buc.repo.GetByUserName(ctx, username)
 	if err != nil {
+		if apErrors.IsNotFound(err) {
+			return nil, errors.ErrBotNotFound
+		}
 		return nil, err
 	}
 	return bot, nil
