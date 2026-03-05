@@ -7,15 +7,15 @@ import (
 	"reply_bot/internal/infrastructure/config"
 	"reply_bot/internal/interface/schema"
 
+	apStorage "git.sr.ht/~mariusor/storage-all"
 	"github.com/go-ap/activitypub"
-	"github.com/go-ap/processing"
 )
 
 type BotRepository struct {
-	store processing.Store
+	store apStorage.FullStorage
 }
 
-func NewBotRepository(store processing.Store) *BotRepository {
+func NewBotRepository(store apStorage.FullStorage) *BotRepository {
 	return &BotRepository{
 		store: store,
 	}
