@@ -12,6 +12,7 @@ import (
 type IBotUseCase interface {
 	GetByUserName(ctx context.Context, username string) (*activitypub.Actor, error)
 	GetOutBox(ctx context.Context, username string) (*activitypub.OrderedCollection, error)
+	Reply(ctx context.Context, username string, item *activitypub.Item) (*activitypub.Note, error)
 }
 
 type botUseCase struct {
@@ -39,4 +40,12 @@ func (buc botUseCase) GetOutBox(ctx context.Context, username string) (*activity
 		return nil, err
 	}
 	return bot, nil
+}
+
+func (buc botUseCase) Reply(ctx context.Context, username string, item *activitypub.Item) (*activitypub.Note, error) {
+	_, err := buc.repo.AddInBox(ctx, username, item)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
 }

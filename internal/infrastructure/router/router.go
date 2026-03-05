@@ -38,6 +38,7 @@ func (r *Router) Setup() *echo.Echo {
 	// specified bot
 	botRouter := botsRouter.Group("/:username")
 	botRouter.GET("/outbox", r.botController.GetOutBox)
+	botRouter.POST("/inbox", r.botController.PostInBox)
 
 	// nodeinfo
 	r.echo.GET("/.well-known/nodeinfo", r.wellKnownController.GetNodeInfo)

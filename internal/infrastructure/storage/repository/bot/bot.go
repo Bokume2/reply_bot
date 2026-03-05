@@ -58,6 +58,39 @@ func (repo BotRepository) GetOutBox(ctx context.Context, username string) (*acti
 	return outBox, nil
 }
 
+func (repo BotRepository) AddInBox(ctx context.Context, username string, item *activitypub.Item) (*activitypub.OrderedCollection, error) {
+	bot, err := repo.GetByUserName(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	var activity *activitypub.Activity
+	err = activitypub.OnActivity(*item, func(a *activitypub.Activity) error {
+		activity = a
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	inboxItem, err := repo.store.Load(bot.Inbox.GetID())
+	if err != nil {
+		return nil, err
+	}
+	var inbox *activitypub.OrderedCollection
+	err = activitypub.OnOrderedCollection(inboxItem, func(oc *activitypub.OrderedCollection) error {
+		e := oc.Append(*activity)
+		inbox = oc
+		return e
+	})
+	if err != nil {
+		return nil, err
+	}
+	_, err = repo.store.Save(inbox)
+	if err != nil {
+		return nil, err
+	}
+	return inbox, nil
+}
+
 func (repo BotRepository) updateAvatarOfBot(bot *activitypub.Actor) (*activitypub.Actor, error) {
 	if !activitypub.IsNil(bot.Image) {
 		return bot, nil
