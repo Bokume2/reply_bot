@@ -23,9 +23,13 @@ func CreateBotActor() error {
 	actor.StartTime = now
 	actor.Updated = now
 	activitypub.Inbox.AddTo(actor)
+	storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Inbox.GetID()))
 	activitypub.Outbox.AddTo(actor)
+	storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Outbox.GetID()))
 	activitypub.Following.AddTo(actor)
+	storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Following.GetID()))
 	activitypub.Followers.AddTo(actor)
+	storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Followers.GetID()))
 	item, err := storage.DataStore.Save(actor)
 	if err != nil {
 		return err

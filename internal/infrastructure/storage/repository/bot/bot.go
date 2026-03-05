@@ -43,8 +43,12 @@ func (repo BotRepository) GetOutBox(ctx context.Context, username string) (*acti
 	if err != nil {
 		return nil, err
 	}
+	item, err := repo.store.Load(bot.Outbox.GetID())
+	if err != nil {
+		return nil, err
+	}
 	var outBox *activitypub.OrderedCollection
-	err = activitypub.OnOrderedCollection(bot.Outbox, func(oc *activitypub.OrderedCollection) error {
+	err = activitypub.OnOrderedCollection(item, func(oc *activitypub.OrderedCollection) error {
 		outBox = oc
 		return nil
 	})
