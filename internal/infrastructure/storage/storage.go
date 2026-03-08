@@ -30,8 +30,7 @@ func InitStorage() {
 		log.Fatal(err)
 	}
 
-	var item activitypub.Item
-	item, err = DataStore.Load(schema.UsernameToId(config.BOT_PREFERRED_USERNAME))
+	item, err := DataStore.Load(schema.UsernameToId(config.BOT_PREFERRED_USERNAME))
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return
