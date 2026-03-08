@@ -89,8 +89,12 @@ type ActivityBinder struct{}
 func (ab ActivityBinder) Bind(c *echo.Context, i any) error {
 	r := c.Request()
 	buf := make([]byte, r.ContentLength)
-	r.Body.Read(buf)
-	item, err := activitypub.UnmarshalJSON(buf)
+	var len int64 = 0
+	for len < r.ContentLength {
+		l, _ := r.Body.Read(buf[len:])
+		len += int64(l)
+	}
+	item, err := activitypub.UnmarshalJSON(buf[:len])
 	if err != nil {
 		return err
 	}
