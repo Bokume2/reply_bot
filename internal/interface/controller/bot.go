@@ -42,16 +42,16 @@ func (bc BotController) GetByUserName(c *echo.Context) error {
 		c.Response().Header().Del(echo.HeaderContentType)
 		return err
 	}
-	return c.JSON(http.StatusOK, bot)
+	return utils.JSONLDResponse(c, http.StatusOK, bot)
 }
 
 func (bc BotController) GetOutBox(c *echo.Context) error {
-	outBox, err := bc.buc.GetOutBox(c.Request().Context(), c.Param("username"))
+	outbox, err := bc.buc.GetOutBox(c.Request().Context(), c.Param("username"))
 	if err != nil {
 		c.Response().Header().Del(echo.HeaderContentType)
 		return err
 	}
-	return c.JSON(http.StatusOK, outBox)
+	return utils.JSONLDResponse(c, http.StatusOK, outbox)
 }
 
 func (bc BotController) PostInBox(c *echo.Context) error {
