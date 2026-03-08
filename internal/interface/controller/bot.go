@@ -86,7 +86,7 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 
 type ActivityBinder struct{}
 
-func (ab ActivityBinder) Bind(c *echo.Context, i any) error {
+func (ab ActivityBinder) Bind(c *echo.Context, item *activitypub.Item) error {
 	r := c.Request()
 	buf := make([]byte, r.ContentLength)
 	var len int64 = 0
@@ -94,16 +94,11 @@ func (ab ActivityBinder) Bind(c *echo.Context, i any) error {
 		l, _ := r.Body.Read(buf[len:])
 		len += int64(l)
 	}
-	item, err := activitypub.UnmarshalJSON(buf[:len])
+	i, err := activitypub.UnmarshalJSON(buf[:len])
 	if err != nil {
-		return err
-	}
-	switch k := i.(type) {
-	case *activitypub.Item:
-		*k = item
-	default:
 		return echo.NewHTTPError(http.StatusUnsupportedMediaType, "failed to convert request body to activity")
 	}
+	*item = i
 	return nil
 }
 
