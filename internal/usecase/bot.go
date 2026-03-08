@@ -52,19 +52,11 @@ func (buc botUseCase) GetOutBox(ctx context.Context, username string) (*activity
 }
 
 func (buc botUseCase) Reply(ctx context.Context, username string, item *activitypub.Item) (*activitypub.Create, *activitypub.Actor, error) {
-	var activity *activitypub.Activity
-	err := activitypub.OnActivity(*item, func(a *activitypub.Activity) error {
-		activity = a
-		return nil
-	})
+	activity, err := activitypub.ToActivity(*item)
 	if err != nil {
 		return nil, nil, err
 	}
-	var to *activitypub.Actor
-	err = activitypub.OnActor(activity.Actor, func(a *activitypub.Actor) error {
-		to = a
-		return nil
-	})
+	to, err := activitypub.ToActor(activity.Actor)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -72,11 +64,10 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 	if err != nil {
 		return nil, nil, err
 	}
-	var note *activitypub.Note
-	err = activitypub.OnObject(activity.Object, func(o *activitypub.Object) error {
-		note = o
-		return nil
-	})
+	note, err := activitypub.ToObject(activity.Object)
+	if err != nil {
+		return nil, nil, err
+	}
 	content, err := utils.RemoveHtmlTagsWithRet(note.Content.String())
 	if err != nil {
 		return nil, nil, err

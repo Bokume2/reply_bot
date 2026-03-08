@@ -37,11 +37,7 @@ func InitStorage() {
 		}
 		log.Fatal(err)
 	}
-	var actor *activitypub.Actor
-	err = activitypub.OnActor(item, func(a *activitypub.Actor) error {
-		actor = a
-		return nil
-	})
+	actor, err := activitypub.ToActor(item)
 	if err != nil {
 		log.Fatal(err)
 	}

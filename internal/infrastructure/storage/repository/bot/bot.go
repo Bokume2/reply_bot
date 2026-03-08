@@ -23,20 +23,19 @@ func NewBotRepository(store apStorage.FullStorage) *BotRepository {
 }
 
 func (repo BotRepository) GetByUserName(ctx context.Context, username string) (*activitypub.Actor, error) {
-	bot, err := repo.store.Load(schema.UsernameToId(username))
+	item, err := repo.store.Load(schema.UsernameToId(username))
 	if err != nil {
 		return nil, err
 	}
-	var botActor *activitypub.Actor
-	err = activitypub.OnActor(bot, func(a *activitypub.Actor) error {
-		var innerErr error
-		botActor, innerErr = repo.updateAvatarOfBot(a)
-		return innerErr
-	})
+	bot, err := activitypub.ToActor(item)
 	if err != nil {
 		return nil, err
 	}
-	return botActor, nil
+	bot, err = repo.updateAvatarOfBot(bot)
+	if err != nil {
+		return nil, err
+	}
+	return bot, nil
 }
 
 func (repo BotRepository) GetOutBox(ctx context.Context, username string) (*activitypub.OrderedCollection, error) {
@@ -48,15 +47,11 @@ func (repo BotRepository) GetOutBox(ctx context.Context, username string) (*acti
 	if err != nil {
 		return nil, err
 	}
-	var outBox *activitypub.OrderedCollection
-	err = activitypub.OnOrderedCollection(item, func(oc *activitypub.OrderedCollection) error {
-		outBox = oc
-		return nil
-	})
+	outbox, err := activitypub.ToOrderedCollection(item)
 	if err != nil {
 		return nil, err
 	}
-	return outBox, nil
+	return outbox, nil
 }
 
 func (repo BotRepository) AppendToInBox(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.OrderedCollection, error) {
@@ -64,16 +59,15 @@ func (repo BotRepository) AppendToInBox(ctx context.Context, username string, ac
 	if err != nil {
 		return nil, err
 	}
-	inboxItem, err := repo.store.Load(bot.Inbox.GetID())
+	item, err := repo.store.Load(bot.Inbox.GetID())
 	if err != nil {
 		return nil, err
 	}
-	var inbox *activitypub.OrderedCollection
-	err = activitypub.OnOrderedCollection(inboxItem, func(oc *activitypub.OrderedCollection) error {
-		e := oc.Append(*activity)
-		inbox = oc
-		return e
-	})
+	inbox, err := activitypub.ToOrderedCollection(item)
+	if err != nil {
+		return nil, err
+	}
+	err = inbox.Append(activity)
 	if err != nil {
 		return nil, err
 	}
@@ -89,16 +83,15 @@ func (repo BotRepository) AppendToOutBox(ctx context.Context, username string, a
 	if err != nil {
 		return nil, err
 	}
-	outboxItem, err := repo.store.Load(bot.Outbox.GetID())
+	item, err := repo.store.Load(bot.Outbox.GetID())
 	if err != nil {
 		return nil, err
 	}
-	var outbox *activitypub.OrderedCollection
-	err = activitypub.OnOrderedCollection(outboxItem, func(oc *activitypub.OrderedCollection) error {
-		e := oc.Append(*activity)
-		outbox = oc
-		return e
-	})
+	outbox, err := activitypub.ToOrderedCollection(item)
+	if err != nil {
+		return nil, err
+	}
+	err = outbox.Append(activity)
 	if err != nil {
 		return nil, err
 	}
@@ -135,11 +128,7 @@ func (repo BotRepository) updateAvatarOfBot(bot *activitypub.Actor) (*activitypu
 		URL:       url,
 	}
 	bot.Icon = avatar
-	botItem, err := repo.store.Save(bot)
-	err = activitypub.OnActor(botItem, func(a *activitypub.Actor) error {
-		bot = a
-		return nil
-	})
+	_, err = repo.store.Save(bot)
 	if err != nil {
 		return nil, err
 	}

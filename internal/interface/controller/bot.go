@@ -111,15 +111,11 @@ func (bc BotController) postActivity(activity *activitypub.Activity, to *activit
 		return err
 	}
 	req.Header.Set(echo.HeaderContentType, "application/activity+json")
-	var username string
-	err = activitypub.OnActor(activity.Actor, func(a *activitypub.Actor) error {
-		username = a.PreferredUsername.String()
-		return nil
-	})
+	bot, err := activitypub.ToActor(activity.Actor)
 	if err != nil {
 		return err
 	}
-	key, err := utils.ReadPrivKey(fmt.Sprintf("storage/cred/%s.key", username))
+	key, err := utils.ReadPrivKey(fmt.Sprintf("storage/cred/%s.key", bot.PreferredUsername))
 	if err != nil {
 		return err
 	}
