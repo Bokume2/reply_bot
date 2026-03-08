@@ -8,7 +8,7 @@ require (
 	github.com/go-ap/activitypub v0.0.0-20260217161652-7bec47e1f870
 	github.com/go-ap/errors v0.0.0-20260208110149-e1b309365966
 	github.com/go-ap/httpsig v0.0.0-20221203064646-3647b4d88fdf
-	github.com/go-ap/processing v0.0.0-20260304094540-25a8f90f336f
+	github.com/go-ap/jsonld v0.0.0-20251216162253-e38fa664ea77
 	github.com/go-ap/webfinger v0.0.0-20260304100518-1631da89fa9a
 	github.com/goccy/go-yaml v1.19.2
 	github.com/joho/godotenv v1.5.1
@@ -32,7 +32,7 @@ require (
 	github.com/go-ap/cache v0.0.0-20260217161741-05770d6d0773 // indirect
 	github.com/go-ap/client v0.0.0-20260304094324-856e00b565b2 // indirect
 	github.com/go-ap/filters v0.0.0-20260304093742-67453e8a9d1a // indirect
-	github.com/go-ap/jsonld v0.0.0-20251216162253-e38fa664ea77 // indirect
+	github.com/go-ap/processing v0.0.0-20260304094540-25a8f90f336f // indirect
 	github.com/go-ap/storage-badger v0.0.0-20260304095632-5385679a7b6c // indirect
 	github.com/go-ap/storage-boltdb v0.0.0-20260304095551-39f69d82a998 // indirect
 	github.com/go-ap/storage-fs v0.0.0-20260304094846-a03a55a6a9d9 // indirect
