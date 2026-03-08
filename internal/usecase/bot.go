@@ -68,7 +68,7 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 	if err != nil {
 		return nil, nil, err
 	}
-	_, err = buc.repo.AddInBox(ctx, username, activity)
+	_, err = buc.repo.AppendToInBox(ctx, username, activity)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -106,7 +106,7 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 		replyAct.To = reply.To
 		replyAct.CC = reply.CC
 
-		_, err = buc.repo.AddOutBox(ctx, username, replyAct)
+		_, err = buc.repo.AppendToOutBox(ctx, username, replyAct)
 		if err != nil {
 			return nil, nil, err
 		}

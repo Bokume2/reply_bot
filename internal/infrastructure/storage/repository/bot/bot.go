@@ -59,7 +59,7 @@ func (repo BotRepository) GetOutBox(ctx context.Context, username string) (*acti
 	return outBox, nil
 }
 
-func (repo BotRepository) AddInBox(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.OrderedCollection, error) {
+func (repo BotRepository) AppendToInBox(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.OrderedCollection, error) {
 	bot, err := repo.GetByUserName(ctx, username)
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (repo BotRepository) AddInBox(ctx context.Context, username string, activit
 	return inbox, nil
 }
 
-func (repo BotRepository) AddOutBox(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.OrderedCollection, error) {
+func (repo BotRepository) AppendToOutBox(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.OrderedCollection, error) {
 	bot, err := repo.GetByUserName(ctx, username)
 	if err != nil {
 		return nil, err
