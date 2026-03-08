@@ -39,7 +39,6 @@ func (r *Router) Setup() *echo.Echo {
 	botRouter := botsRouter.Group("/:username")
 	botRouter.GET("/outbox", r.botController.GetOutBox)
 	botRouter.POST("/inbox", r.botController.PostInBox)
-	botRouter.GET("/publickey", r.botController.GetPubKey)
 
 	// nodeinfo
 	r.echo.GET("/.well-known/nodeinfo", r.wellKnownController.GetNodeInfo)

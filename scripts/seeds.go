@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"reply_bot/internal/infrastructure/config"
 	"reply_bot/internal/infrastructure/storage"
 	"reply_bot/internal/interface/schema"
@@ -30,7 +31,15 @@ func CreateBotActor() error {
 	storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Following.GetID()))
 	activitypub.Followers.AddTo(actor)
 	storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Followers.GetID()))
-	actor.PublicKey.ID = actor.ID.AddPath("/publickey")
+	pubkey, err := os.ReadFile(fmt.Sprintf("storage/cred/%s.pub", actor.PreferredUsername.String()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	actor.PublicKey = activitypub.PublicKey{
+		ID:           activitypub.ID(fmt.Sprintf("%s#main-key", actor.ID.String())),
+		Owner:        actor.ID,
+		PublicKeyPem: string(pubkey),
+	}
 	item, err := storage.DataStore.Save(actor)
 	if err != nil {
 		return err

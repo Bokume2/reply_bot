@@ -82,14 +82,6 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (bc BotController) GetPubKey(c *echo.Context) error {
-	_, err := bc.buc.GetByUserName(c.Request().Context(), c.Param("username"))
-	if err != nil {
-		return err
-	}
-	return c.File(fmt.Sprintf("storage/cred/%s.pub", c.Param("username")))
-}
-
 type ActivityBinder struct{}
 
 func (ab ActivityBinder) Bind(c *echo.Context, i any) error {
