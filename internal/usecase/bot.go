@@ -64,9 +64,15 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 	if err != nil {
 		return nil, nil, err
 	}
+	if activity.Type != activitypub.CreateType {
+		return nil, nil, nil
+	}
 	note, err := activitypub.ToObject(activity.Object)
 	if err != nil {
 		return nil, nil, err
+	}
+	if note.Type != activitypub.NoteType {
+		return nil, nil, nil
 	}
 	content, err := utils.RemoveHtmlTagsWithRet(note.Content.String())
 	if err != nil {
