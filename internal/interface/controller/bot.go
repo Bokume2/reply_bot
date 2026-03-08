@@ -27,7 +27,6 @@ func NewBotController(buc usecase.IBotUseCase) *BotController {
 
 func BotsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c *echo.Context) error {
-		c.Response().Header().Set(echo.HeaderContentType, "application/activity+json")
 		err := next(c)
 		if errors.Is(err, domainErrors.ErrBotNotFound) {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
@@ -39,7 +38,6 @@ func BotsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 func (bc BotController) GetByUserName(c *echo.Context) error {
 	bot, err := bc.buc.GetByUserName(c.Request().Context(), c.Param("username"))
 	if err != nil {
-		c.Response().Header().Del(echo.HeaderContentType)
 		return err
 	}
 	return utils.JSONLDResponse(c, http.StatusOK, bot)
@@ -48,7 +46,6 @@ func (bc BotController) GetByUserName(c *echo.Context) error {
 func (bc BotController) GetOutBox(c *echo.Context) error {
 	outbox, err := bc.buc.GetOutBox(c.Request().Context(), c.Param("username"))
 	if err != nil {
-		c.Response().Header().Del(echo.HeaderContentType)
 		return err
 	}
 	return utils.JSONLDResponse(c, http.StatusOK, outbox)
@@ -56,13 +53,11 @@ func (bc BotController) GetOutBox(c *echo.Context) error {
 
 func (bc BotController) PostInBox(c *echo.Context) error {
 	if c.Request().Header.Get(echo.HeaderContentType) != "application/activity+json" && c.Request().Header.Get(echo.HeaderContentType) != jsonld.ContentType {
-		c.Response().Header().Del(echo.HeaderContentType)
 		return echo.NewHTTPError(http.StatusUnsupportedMediaType, "expected application/activity+json")
 	}
 	var ab ActivityBinder
 	item := new(activitypub.Item)
 	if err := ab.Bind(c, item); err != nil {
-		c.Response().Header().Del(echo.HeaderContentType)
 		return err
 	}
 	reply, to, err := bc.buc.Reply(c.Request().Context(), c.Param("username"), item)
@@ -71,13 +66,11 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 			item := activitypub.Item(reply)
 			bc.buc.CancelReply(c.Request().Context(), &item)
 		}
-		c.Response().Header().Del(echo.HeaderContentType)
 		return err
 	}
 	if reply != nil {
 		err = bc.postActivity(reply, to)
 		if err != nil {
-			c.Response().Header().Del(echo.HeaderContentType)
 			return err
 		}
 	}

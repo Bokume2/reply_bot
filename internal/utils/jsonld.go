@@ -13,5 +13,6 @@ func JSONLDResponse(c *echo.Context, code int, obj any) error {
 	if err != nil {
 		return err
 	}
+	c.Response().Header().Set(echo.HeaderContentType, "application/activity+json")
 	return c.String(code, string(b))
 }
