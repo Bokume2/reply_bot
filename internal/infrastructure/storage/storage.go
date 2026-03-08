@@ -7,6 +7,7 @@ import (
 
 	apStorage "git.sr.ht/~mariusor/storage-all"
 	"github.com/go-ap/activitypub"
+	"github.com/go-ap/errors"
 	"github.com/go-ap/webfinger"
 )
 
@@ -32,6 +33,9 @@ func InitStorage() {
 	var item activitypub.Item
 	item, err = DataStore.Load(schema.UsernameToId(config.BOT_PREFERRED_USERNAME))
 	if err != nil {
+		if errors.IsNotFound(err) {
+			return
+		}
 		log.Fatal(err)
 	}
 	var actor *activitypub.Actor
