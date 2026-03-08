@@ -67,8 +67,10 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 	}
 	reply, to, err := bc.buc.Reply(c.Request().Context(), c.Param("username"), item)
 	if err != nil {
-		item, err := activitypub.To[activitypub.Item](reply)
-		bc.buc.CancelReply(c.Request().Context(), item)
+		if reply != nil {
+			item := activitypub.Item(reply)
+			bc.buc.CancelReply(c.Request().Context(), &item)
+		}
 		c.Response().Header().Del(echo.HeaderContentType)
 		return err
 	}
