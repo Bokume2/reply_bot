@@ -57,19 +57,6 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 	if err != nil {
 		return nil, nil, err
 	}
-	var to *activitypub.Actor
-	if activity.Actor.IsLink() {
-		toItem, err := external.ResolveActivityPubLink(&activity.Actor)
-		if err != nil {
-			return nil, nil, err
-		}
-		to, err = activitypub.ToActor(*toItem)
-	} else {
-		to, err = activitypub.ToActor(activity.Actor)
-	}
-	if err != nil {
-		return nil, nil, err
-	}
 	_, err = buc.repo.AppendToInBox(ctx, username, activity)
 	if err != nil {
 		return nil, nil, err
@@ -95,6 +82,19 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 		if content == v.Call {
 			replyCont = v.Reply
 		}
+	}
+	var to *activitypub.Actor
+	if activity.Actor.IsLink() {
+		toItem, err := external.ResolveActivityPubLink(&activity.Actor)
+		if err != nil {
+			return nil, nil, err
+		}
+		to, err = activitypub.ToActor(*toItem)
+	} else {
+		to, err = activitypub.ToActor(activity.Actor)
+	}
+	if err != nil {
+		return nil, nil, err
 	}
 	if replyCont != "" {
 		reply := activitypub.ObjectNew(activitypub.NoteType)
