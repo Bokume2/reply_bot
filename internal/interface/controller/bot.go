@@ -67,7 +67,7 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 		}
 		return err
 	}
-	if reply != nil {
+	if reply != nil && to != nil {
 		err = bc.postActivity(reply, to)
 		if err != nil {
 			return err
