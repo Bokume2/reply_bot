@@ -95,7 +95,7 @@ func (ab ActivityBinder) Bind(c *echo.Context, item *activitypub.Item) error {
 }
 
 func (bc BotController) postActivity(activity *activitypub.Activity, to *activitypub.Actor) error {
-	b, err := activitypub.MarshalJSON(activity)
+	b, err := utils.JSONLDMarshal(activity)
 	if err != nil {
 		return err
 	}
