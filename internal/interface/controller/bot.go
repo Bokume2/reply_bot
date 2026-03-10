@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	domainErrors "reply_bot/internal/domain/errors"
+	"reply_bot/internal/infrastructure/external"
 	"reply_bot/internal/usecase"
 	"reply_bot/internal/utils"
-	"strings"
 
 	"github.com/go-ap/activitypub"
-	"github.com/go-ap/httpsig"
 	"github.com/go-ap/jsonld"
 	"github.com/labstack/echo/v5"
 )
@@ -100,24 +99,12 @@ func (bc BotController) postActivity(activity *activitypub.Activity, to *activit
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", to.Inbox.GetLink().String(), strings.NewReader(string(b)))
-	if err != nil {
-		return err
-	}
-	req.Header.Set(echo.HeaderContentType, "application/activity+json")
 	bot, err := activitypub.ToActor(activity.Actor)
 	if err != nil {
 		return err
+	} else if bot == nil {
+		return errors.New("actor of activity is nil")
 	}
-	key, err := utils.ReadPrivKey(fmt.Sprintf("storage/cred/%s.key", bot.PreferredUsername))
-	if err != nil {
-		return err
-	}
-	signer := httpsig.NewRSASHA256Signer("signer", key, nil)
-	err = signer.Sign(req)
-	if err != nil {
-		return err
-	}
-	_, err = new(http.Client).Do(req)
+	_, err = external.PostActivityPub(fmt.Sprintf("storage/cred/%s.key", bot.PreferredUsername), to.Inbox.GetLink().String(), string(b))
 	return err
 }
