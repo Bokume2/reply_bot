@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"os"
 	"reply_bot/internal/infrastructure/config"
+	"reply_bot/internal/infrastructure/storage"
 	"reply_bot/internal/interface/schema"
+	"reply_bot/internal/utils"
+	"time"
 
 	apStorage "git.sr.ht/~mariusor/storage-all"
 	"github.com/go-ap/activitypub"
 	"github.com/go-ap/errors"
+	"golang.org/x/text/language"
 )
 
 type BotRepository struct {
@@ -20,6 +24,47 @@ func NewBotRepository(store apStorage.FullStorage) *BotRepository {
 	return &BotRepository{
 		store: store,
 	}
+}
+
+func (repo BotRepository) CreateBot(ctx context.Context, username, name string) (*activitypub.Actor, error) {
+	actor := activitypub.ActorNew(schema.UsernameToId(username), activitypub.ServiceType)
+	actor.Name.Set(activitypub.LangRef(language.Japanese), activitypub.Content(name))
+	actor.PreferredUsername.Set(activitypub.LangRef(language.Japanese), activitypub.Content(username))
+	now := time.Now()
+	actor.Published = now
+	actor.StartTime = now
+	actor.Updated = now
+	activitypub.Inbox.AddTo(actor)
+	_, err := storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Inbox.GetID()))
+	if err != nil {
+		return nil, err
+	}
+	activitypub.Outbox.AddTo(actor)
+	_, err = storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Outbox.GetID()))
+	if err != nil {
+		return nil, err
+	}
+	activitypub.Following.AddTo(actor)
+	_, err = storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Following.GetID()))
+	if err != nil {
+		return nil, err
+	}
+	activitypub.Followers.AddTo(actor)
+	_, err = storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Followers.GetID()))
+	if err != nil {
+		return nil, err
+	}
+	pubkey, err := os.ReadFile(utils.PubKeyPath(actor.PreferredUsername.String()))
+	if err != nil {
+		return nil, err
+	}
+	actor.PublicKey = activitypub.PublicKey{
+		ID:           activitypub.ID(fmt.Sprintf("%s#main-key", actor.ID.String())),
+		Owner:        actor.ID,
+		PublicKeyPem: string(pubkey),
+	}
+	_, err = storage.DataStore.Save(actor)
+	return actor, err
 }
 
 func (repo BotRepository) GetByUserName(ctx context.Context, username string) (*activitypub.Actor, error) {

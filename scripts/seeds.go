@@ -2,54 +2,27 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"reply_bot/internal/infrastructure/config"
 	"reply_bot/internal/infrastructure/storage"
-	"reply_bot/internal/interface/schema"
-	"reply_bot/internal/utils"
-	"time"
+	"reply_bot/internal/infrastructure/storage/repository/bot"
 
 	"github.com/go-ap/activitypub"
-	"golang.org/x/text/language"
 )
 
 func CreateBotActor() error {
-	actor := activitypub.ActorNew(schema.UsernameToId(config.BOT_PREFERRED_USERNAME), activitypub.ServiceType)
-	actor.Name.Set(activitypub.LangRef(language.Japanese), activitypub.Content(config.BOT_NAME))
-	actor.PreferredUsername.Set(activitypub.LangRef(language.Japanese), activitypub.Content(config.BOT_PREFERRED_USERNAME))
-	now := time.Now()
-	actor.Published = now
-	actor.StartTime = now
-	actor.Updated = now
-	activitypub.Inbox.AddTo(actor)
-	storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Inbox.GetID()))
-	activitypub.Outbox.AddTo(actor)
-	storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Outbox.GetID()))
-	activitypub.Following.AddTo(actor)
-	storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Following.GetID()))
-	activitypub.Followers.AddTo(actor)
-	storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Followers.GetID()))
-	pubkey, err := os.ReadFile(utils.PubKeyPath(actor.PreferredUsername.String()))
-	if err != nil {
-		log.Fatal(err)
-	}
-	actor.PublicKey = activitypub.PublicKey{
-		ID:           activitypub.ID(fmt.Sprintf("%s#main-key", actor.ID.String())),
-		Owner:        actor.ID,
-		PublicKeyPem: string(pubkey),
-	}
-	item, err := storage.DataStore.Save(actor)
+	actor, err := bot.NewBotRepository(storage.DataStore).CreateBot(context.Background(), config.BOT_PREFERRED_USERNAME, config.BOT_NAME)
 	if err != nil {
 		return err
 	}
-	b, err := activitypub.MarshalJSON(item)
+	b, _ := activitypub.MarshalJSON(actor)
 	var buf bytes.Buffer
 	err = json.Indent(&buf, b, "", "  ")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	fmt.Println()
 	fmt.Println("Created actor showed bellow:")
