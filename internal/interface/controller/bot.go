@@ -2,7 +2,6 @@ package controller
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	domainErrors "reply_bot/internal/domain/errors"
 	"reply_bot/internal/infrastructure/external"
@@ -105,6 +104,6 @@ func (bc BotController) postActivity(activity *activitypub.Activity, to *activit
 	} else if bot == nil {
 		return errors.New("actor of activity is nil")
 	}
-	_, err = external.PostActivityPub(fmt.Sprintf("storage/cred/%s.key", bot.PreferredUsername), to.Inbox.GetLink().String(), string(b))
+	_, err = external.PostActivityPub(utils.PKeyPath(bot.PreferredUsername.String()), to.Inbox.GetLink().String(), string(b))
 	return err
 }

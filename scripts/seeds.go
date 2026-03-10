@@ -9,6 +9,7 @@ import (
 	"reply_bot/internal/infrastructure/config"
 	"reply_bot/internal/infrastructure/storage"
 	"reply_bot/internal/interface/schema"
+	"reply_bot/internal/utils"
 	"time"
 
 	"github.com/go-ap/activitypub"
@@ -31,7 +32,7 @@ func CreateBotActor() error {
 	storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Following.GetID()))
 	activitypub.Followers.AddTo(actor)
 	storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Followers.GetID()))
-	pubkey, err := os.ReadFile(fmt.Sprintf("storage/cred/%s.pub", actor.PreferredUsername.String()))
+	pubkey, err := os.ReadFile(utils.PubKeyPath(actor.PreferredUsername.String()))
 	if err != nil {
 		log.Fatal(err)
 	}
