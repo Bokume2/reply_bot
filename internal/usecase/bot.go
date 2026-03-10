@@ -7,6 +7,7 @@ import (
 	"reply_bot/internal/domain/errors"
 	"reply_bot/internal/domain/repository"
 	"reply_bot/internal/infrastructure/config"
+	"reply_bot/internal/infrastructure/external"
 	"reply_bot/internal/interface/schema"
 	"reply_bot/internal/utils"
 	"strings"
@@ -56,7 +57,30 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 	if err != nil {
 		return nil, nil, err
 	}
-	to, err := activitypub.ToActor(activity.Actor)
+	var to *activitypub.Actor
+	if activity.Actor.IsLink() {
+		res, err := external.GetActivityPub(activity.Actor.GetLink().String())
+		if err != nil {
+			return nil, nil, err
+		}
+		b := make([]byte, res.ContentLength)
+		var len int64 = 0
+		for len < res.ContentLength {
+			l, _ := res.Body.Read(b)
+			len += int64(l)
+		}
+		err = res.Body.Close()
+		if err != nil {
+			return nil, nil, err
+		}
+		toItem, err := activitypub.UnmarshalJSON(b)
+		if err != nil {
+			return nil, nil, err
+		}
+		to, err = activitypub.ToActor(toItem)
+	} else {
+		to, err = activitypub.ToActor(activity.Actor)
+	}
 	if err != nil {
 		return nil, nil, err
 	}
