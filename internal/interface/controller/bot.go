@@ -5,6 +5,7 @@ import (
 	"net/http"
 	domainErrors "reply_bot/internal/domain/errors"
 	"reply_bot/internal/infrastructure/external"
+	"reply_bot/internal/interface/schema"
 	"reply_bot/internal/usecase"
 	"reply_bot/internal/utils"
 
@@ -94,16 +95,14 @@ func (ab ActivityBinder) Bind(c *echo.Context, item *activitypub.Item) error {
 }
 
 func (bc BotController) postActivity(activity *activitypub.Activity, to *activitypub.Actor) error {
+	if activity.Actor == nil {
+		return errors.New("actor of activity is nil")
+	}
 	b, err := utils.JSONLDMarshal(activity)
 	if err != nil {
 		return err
 	}
-	bot, err := activitypub.ToActor(activity.Actor)
-	if err != nil {
-		return err
-	} else if bot == nil {
-		return errors.New("actor of activity is nil")
-	}
-	_, err = external.PostActivityPub(utils.PKeyPath(bot.PreferredUsername.String()), to.Inbox.GetLink().String(), string(b))
+	username := schema.IDToUsername(activity.Actor.GetID())
+	_, err = external.PostActivityPub(utils.PKeyPath(username), to.Inbox.GetLink().String(), string(b))
 	return err
 }

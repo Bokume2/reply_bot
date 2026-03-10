@@ -27,7 +27,7 @@ func NewBotRepository(store apStorage.FullStorage) *BotRepository {
 }
 
 func (repo BotRepository) CreateBot(ctx context.Context, username, name string) (*activitypub.Actor, error) {
-	actor := activitypub.ActorNew(schema.UsernameToId(username), activitypub.ServiceType)
+	actor := activitypub.ActorNew(schema.UsernameToID(username), activitypub.ServiceType)
 	actor.Name.Set(activitypub.LangRef(language.Japanese), activitypub.Content(name))
 	actor.PreferredUsername.Set(activitypub.LangRef(language.Japanese), activitypub.Content(username))
 	now := time.Now()
@@ -72,7 +72,7 @@ func (repo BotRepository) CreateBot(ctx context.Context, username, name string) 
 }
 
 func (repo BotRepository) GetByUserName(ctx context.Context, username string) (*activitypub.Actor, error) {
-	item, err := repo.store.Load(schema.UsernameToId(username))
+	item, err := repo.store.Load(schema.UsernameToID(username))
 	if err != nil {
 		return nil, err
 	}

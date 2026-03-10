@@ -99,16 +99,16 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 	if replyCont != "" {
 		reply := activitypub.ObjectNew(activitypub.NoteType)
 		reply.Content.Set(activitypub.LangRef(language.Japanese), activitypub.Content(replyCont))
-		reply.AttributedTo = schema.UsernameToId(username)
+		reply.AttributedTo = schema.UsernameToID(username)
 		reply.InReplyTo = activity.ID
 		reply.To.Append(activitypub.PublicNS)
-		reply.CC.Append(schema.UsernameToId(username).AddPath(string(activitypub.Followers)))
+		reply.CC.Append(schema.UsernameToID(username).AddPath(string(activitypub.Followers)))
 		reply.CC.Append(activity.Actor.GetID())
 		reply.URL = reply.ID
 		reply.Published = time.Now()
 
 		replyAct := activitypub.CreateNew(activitypub.EmptyID, reply)
-		replyAct.Actor = schema.UsernameToId(username)
+		replyAct.Actor = schema.UsernameToID(username)
 		replyAct.Published = reply.Published
 		replyAct.To = reply.To
 		replyAct.CC = reply.CC
