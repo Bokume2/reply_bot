@@ -6,10 +6,18 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
-func JSONLDResponse(c *echo.Context, code int, obj any) error {
-	payload := jsonld.WithContext(jsonld.IRI(activitypub.ActivityBaseURI))
+func JSONLDMarshal(obj any, ctx ...jsonld.Collapsible) ([]byte, error) {
+	if ctx == nil {
+		ctx = []jsonld.Collapsible{jsonld.IRI(activitypub.ActivityBaseURI)}
+	}
+	payload := jsonld.WithContext(ctx...)
 	payload.Obj = obj
 	b, err := jsonld.Marshal(payload)
+	return b, err
+}
+
+func JSONLDResponse(c *echo.Context, code int, obj any) error {
+	b, err := JSONLDMarshal(obj, nil)
 	if err != nil {
 		return err
 	}
