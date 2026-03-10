@@ -59,25 +59,11 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 	}
 	var to *activitypub.Actor
 	if activity.Actor.IsLink() {
-		res, err := external.GetActivityPub(activity.Actor.GetLink().String())
+		toItem, err := external.ResolveActivityPubLink(&activity.Actor)
 		if err != nil {
 			return nil, nil, err
 		}
-		b := make([]byte, res.ContentLength)
-		var len int64 = 0
-		for len < res.ContentLength {
-			l, _ := res.Body.Read(b)
-			len += int64(l)
-		}
-		err = res.Body.Close()
-		if err != nil {
-			return nil, nil, err
-		}
-		toItem, err := activitypub.UnmarshalJSON(b)
-		if err != nil {
-			return nil, nil, err
-		}
-		to, err = activitypub.ToActor(toItem)
+		to, err = activitypub.ToActor(*toItem)
 	} else {
 		to, err = activitypub.ToActor(activity.Actor)
 	}
