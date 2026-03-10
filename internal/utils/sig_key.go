@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -14,6 +15,41 @@ func PKeyPath(username string) string {
 
 func PubKeyPath(username string) string {
 	return fmt.Sprintf("storage/cred/%s.pub", username)
+}
+
+func GenerateKeys(username string) (*rsa.PrivateKey, error) {
+	key, err := rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		return nil, err
+	}
+	pkeyFile, err := os.Create(PKeyPath(username))
+	if err != nil {
+		return nil, err
+	}
+	err = pem.Encode(pkeyFile, &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	})
+	if err != nil {
+		return nil, err
+	}
+	err = pkeyFile.Close()
+	if err != nil {
+		return nil, err
+	}
+	pubkeyFile, err := os.Create(PubKeyPath(username))
+	if err != nil {
+		return nil, err
+	}
+	err = pem.Encode(pubkeyFile, &pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: x509.MarshalPKCS1PublicKey(&key.PublicKey),
+	})
+	if err != nil {
+		return nil, err
+	}
+	err = pubkeyFile.Close()
+	return key, err
 }
 
 func ReadPrivKey(path string) (*rsa.PrivateKey, error) {

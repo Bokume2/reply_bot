@@ -54,6 +54,10 @@ func (repo BotRepository) CreateBot(ctx context.Context, username, name string) 
 	if err != nil {
 		return nil, err
 	}
+	_, err = utils.GenerateKeys(actor.PreferredUsername.String())
+	if err != nil {
+		return nil, err
+	}
 	pubkey, err := os.ReadFile(utils.PubKeyPath(actor.PreferredUsername.String()))
 	if err != nil {
 		return nil, err
