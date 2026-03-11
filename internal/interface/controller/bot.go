@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 	domainErrors "reply_bot/internal/domain/errors"
-	"reply_bot/internal/infrastructure/external"
+	externalAP "reply_bot/internal/infrastructure/external/activitypub"
 	"reply_bot/internal/interface/schema"
 	"reply_bot/internal/usecase"
 	"reply_bot/internal/utils"
@@ -103,6 +103,6 @@ func (bc BotController) postActivity(activity *activitypub.Activity, to *activit
 		return err
 	}
 	username := schema.IDToUsername(activity.Actor.GetID())
-	_, err = external.PostActivityPub(utils.PKeyPath(username), to.Inbox.GetLink().String(), string(b))
+	_, err = externalAP.PostActivityPub(utils.PKeyPath(username), to.Inbox.GetLink().String(), string(b))
 	return err
 }

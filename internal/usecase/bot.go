@@ -7,7 +7,7 @@ import (
 	"reply_bot/internal/domain/errors"
 	"reply_bot/internal/domain/repository"
 	"reply_bot/internal/infrastructure/config"
-	"reply_bot/internal/infrastructure/external"
+	externalAP "reply_bot/internal/infrastructure/external/activitypub"
 	"reply_bot/internal/interface/schema"
 	"reply_bot/internal/utils"
 	"strings"
@@ -85,7 +85,7 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 	}
 	var to *activitypub.Actor
 	if activity.Actor.IsLink() {
-		toItem, err := external.ResolveActivityPubLink(&activity.Actor)
+		toItem, err := externalAP.ResolveActivityPubLink(&activity.Actor)
 		if err != nil {
 			return nil, nil, err
 		}
