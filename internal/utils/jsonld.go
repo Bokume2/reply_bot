@@ -7,8 +7,11 @@ import (
 )
 
 func JSONLDMarshal(obj any, ctx ...jsonld.Collapsible) ([]byte, error) {
-	if ctx == nil {
-		ctx = []jsonld.Collapsible{jsonld.IRI(activitypub.ActivityBaseURI)}
+	if len(ctx) == 0 {
+		ctx = []jsonld.Collapsible{
+			jsonld.IRI(activitypub.ActivityBaseURI),
+			jsonld.IRI("https://w3id.org/security/v1"),
+		}
 	}
 	payload := jsonld.WithContext(ctx...)
 	payload.Obj = obj
@@ -17,7 +20,7 @@ func JSONLDMarshal(obj any, ctx ...jsonld.Collapsible) ([]byte, error) {
 }
 
 func JSONLDResponse(c *echo.Context, code int, obj any) error {
-	b, err := JSONLDMarshal(obj, nil)
+	b, err := JSONLDMarshal(obj)
 	if err != nil {
 		return err
 	}
