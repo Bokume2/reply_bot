@@ -1,10 +1,15 @@
 package activitypub
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"net/http"
+	"reply_bot/internal/infrastructure/config"
 	"reply_bot/internal/infrastructure/storage"
+	"reply_bot/internal/interface/schema"
 	"reply_bot/internal/utils"
 	"strings"
+	"time"
 
 	"github.com/go-ap/activitypub"
 	apErrors "github.com/go-ap/errors"
@@ -26,7 +31,15 @@ func ResolveActivityPubLink(item *activitypub.Item) (*activitypub.Item, error) {
 		return nil, err
 	}
 
-	res, err := GetActivityPub(link.String())
+	actorItem, err := storage.DataStore.Load(schema.UsernameToID(config.BOT_PREFERRED_USERNAME))
+	if err != nil {
+		return nil, err
+	}
+	instanceActor, err := activitypub.ToActor(actorItem)
+	if err != nil {
+		return nil, err
+	}
+	res, err := GetActivityPub(instanceActor, link.String())
 	if err != nil {
 		return nil, err
 	}
@@ -44,17 +57,27 @@ func ResolveActivityPubLink(item *activitypub.Item) (*activitypub.Item, error) {
 	return &it, err
 }
 
-func PostActivityPub(pkeyPath, to, body string) (*http.Response, error) {
+func PostActivityPub(signingActor *activitypub.Actor, to, body string) (*http.Response, error) {
 	req, err := http.NewRequest("POST", to, strings.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set(echo.HeaderContentType, "application/activity+json")
-	key, err := utils.ReadPrivKey(pkeyPath)
+	req.Header.Set("Date", time.Now().UTC().Format(http.TimeFormat))
+	hash := (sha256.Sum256([]byte(body)))
+	digest := "SHA-256=" + base64.StdEncoding.Strict().EncodeToString(hash[:])
+	req.Header.Set("Digest", digest)
+	key, err := utils.ReadPrivKey(utils.PKeyPath(signingActor.PreferredUsername.String()))
 	if err != nil {
 		return nil, err
 	}
-	signer := httpsig.NewRSASHA256Signer("signer", key, nil)
+	signer := httpsig.NewRSASHA256Signer(signingActor.PublicKey.ID.String(), key, []string{
+		"(request-target)",
+		"host",
+		"date",
+		"content-type",
+		"digest",
+	})
 	err = signer.Sign(req)
 	if err != nil {
 		return nil, err
@@ -62,11 +85,29 @@ func PostActivityPub(pkeyPath, to, body string) (*http.Response, error) {
 	return new(http.Client).Do(req)
 }
 
-func GetActivityPub(from string) (*http.Response, error) {
+func GetActivityPub(signingActor *activitypub.Actor, from string) (*http.Response, error) {
 	req, err := http.NewRequest("GET", from, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set(echo.HeaderAccept, jsonld.ContentType)
+	req.Header.Set(echo.HeaderAccept, strings.Join([]string{
+		jsonld.ContentType,
+		"application/activity+json",
+	}, ", "))
+	req.Header.Set("Date", time.Now().UTC().Format(http.TimeFormat))
+	key, err := utils.ReadPrivKey(utils.PKeyPath(signingActor.PreferredUsername.String()))
+	if err != nil {
+		return nil, err
+	}
+	signer := httpsig.NewRSASHA256Signer(signingActor.PublicKey.ID.String(), key, []string{
+		"(request-target)",
+		"host",
+		"date",
+		"accept",
+	})
+	err = signer.Sign(req)
+	if err != nil {
+		return nil, err
+	}
 	return new(http.Client).Do(req)
 }

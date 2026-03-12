@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	domainErrors "reply_bot/internal/domain/errors"
@@ -68,7 +69,7 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 		return err
 	}
 	if reply != nil && to != nil {
-		err = bc.postActivity(reply, to)
+		err = bc.postActivity(c.Request().Context(), reply, to)
 		if err != nil {
 			return err
 		}
@@ -94,7 +95,7 @@ func (ab ActivityBinder) Bind(c *echo.Context, item *activitypub.Item) error {
 	return nil
 }
 
-func (bc BotController) postActivity(activity *activitypub.Activity, to *activitypub.Actor) error {
+func (bc BotController) postActivity(ctx context.Context, activity *activitypub.Activity, to *activitypub.Actor) error {
 	if activity.Actor == nil {
 		return errors.New("actor of activity is nil")
 	}
@@ -102,7 +103,10 @@ func (bc BotController) postActivity(activity *activitypub.Activity, to *activit
 	if err != nil {
 		return err
 	}
-	username := schema.IDToUsername(activity.Actor.GetID())
-	_, err = externalAP.PostActivityPub(utils.PKeyPath(username), to.Inbox.GetLink().String(), string(b))
+	actor, err := bc.buc.GetByUserName(ctx, schema.IDToUsername(activity.Actor.GetID()))
+	if err != nil {
+		return err
+	}
+	_, err = externalAP.PostActivityPub(actor, to.Inbox.GetLink().String(), string(b))
 	return err
 }
