@@ -161,6 +161,11 @@ func (repo BotRepository) DeleteFromOutBox(ctx context.Context, item *activitypu
 	return repo.store.Delete(*item)
 }
 
+func (repo BotRepository) LoadAny(ctx context.Context, id activitypub.IRI) (*activitypub.Item, error) {
+	item, err := repo.store.Load(id)
+	return &item, err
+}
+
 func (repo BotRepository) updateAvatarOfBot(bot *activitypub.Actor) (*activitypub.Actor, error) {
 	if !activitypub.IsNil(bot.Image) {
 		return bot, nil

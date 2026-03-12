@@ -23,6 +23,7 @@ type IBotUseCase interface {
 	GetOutBox(ctx context.Context, username string) (*activitypub.OrderedCollection, error)
 	Reply(ctx context.Context, username string, item *activitypub.Item) (*activitypub.Create, *activitypub.Actor, error)
 	CancelReply(ctx context.Context, item *activitypub.Item) error
+	GetAny(ctx context.Context, id activitypub.IRI) (*activitypub.Item, error)
 }
 
 type botUseCase struct {
@@ -124,4 +125,8 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 
 func (buc botUseCase) CancelReply(ctx context.Context, item *activitypub.Item) error {
 	return buc.repo.DeleteFromOutBox(ctx, item)
+}
+
+func (buc botUseCase) GetAny(ctx context.Context, id activitypub.IRI) (*activitypub.Item, error) {
+	return buc.repo.LoadAny(ctx, id)
 }

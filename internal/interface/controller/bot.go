@@ -5,12 +5,15 @@ import (
 	"errors"
 	"net/http"
 	domainErrors "reply_bot/internal/domain/errors"
+	"reply_bot/internal/infrastructure/config"
 	externalAP "reply_bot/internal/infrastructure/external/activitypub"
 	"reply_bot/internal/interface/schema"
 	"reply_bot/internal/usecase"
 	"reply_bot/internal/utils"
+	"strings"
 
 	"github.com/go-ap/activitypub"
+	apErrors "github.com/go-ap/errors"
 	"github.com/go-ap/jsonld"
 	"github.com/labstack/echo/v5"
 )
@@ -75,6 +78,17 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 		}
 	}
 	return c.NoContent(http.StatusAccepted)
+}
+
+func (bc BotController) GetEndPoints(c *echo.Context) error {
+	if strings.HasSuffix(c.Request().URL.Path, "/inbox") {
+		return echo.NewHTTPError(http.StatusNotFound, "That endpoint was not found")
+	}
+	item, err := bc.buc.GetAny(c.Request().Context(), config.LOCAL_ORIGIN.AddPath(c.Request().URL.Path))
+	if apErrors.IsNotFound(err) {
+		return echo.NewHTTPError(http.StatusNotFound, "That endpoint was not found")
+	}
+	return utils.JSONLDResponse(c, http.StatusOK, item)
 }
 
 type ActivityBinder struct{}
