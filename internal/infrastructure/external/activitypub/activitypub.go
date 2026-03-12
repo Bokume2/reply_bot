@@ -1,7 +1,6 @@
 package activitypub
 
 import (
-	"errors"
 	"net/http"
 	"reply_bot/internal/infrastructure/storage"
 	"reply_bot/internal/utils"
@@ -30,9 +29,6 @@ func ResolveActivityPubLink(item *activitypub.Item) (*activitypub.Item, error) {
 	res, err := GetActivityPub(link.String())
 	if err != nil {
 		return nil, err
-	}
-	if res.Header.Get(echo.HeaderContentType) != "application/activity+json" && res.Header.Get(echo.HeaderContentType) != jsonld.ContentType {
-		return nil, errors.New("Link does not shows ActivityStreams Resource")
 	}
 	buf := make([]byte, res.ContentLength)
 	var len int64 = 0
