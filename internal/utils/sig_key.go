@@ -41,9 +41,13 @@ func GenerateKeys(username string) (*rsa.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
+	pubkeyDER, err := x509.MarshalPKIXPublicKey(&key.PublicKey)
+	if err != nil {
+		return nil, err
+	}
 	err = pem.Encode(pubkeyFile, &pem.Block{
 		Type:  "PUBLIC KEY",
-		Bytes: x509.MarshalPKCS1PublicKey(&key.PublicKey),
+		Bytes: pubkeyDER,
 	})
 	if err != nil {
 		return nil, err
