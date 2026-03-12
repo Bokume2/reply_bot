@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	domainErrors "reply_bot/internal/domain/errors"
 	"reply_bot/internal/infrastructure/config"
@@ -94,14 +95,11 @@ func (bc BotController) GetEndPoints(c *echo.Context) error {
 type ActivityBinder struct{}
 
 func (ab ActivityBinder) Bind(c *echo.Context, item *activitypub.Item) error {
-	r := c.Request()
-	buf := make([]byte, r.ContentLength)
-	var len int64 = 0
-	for len < r.ContentLength {
-		l, _ := r.Body.Read(buf[len:])
-		len += int64(l)
+	body, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		return err
 	}
-	i, err := activitypub.UnmarshalJSON(buf[:len])
+	i, err := activitypub.UnmarshalJSON(body)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnsupportedMediaType, "failed to convert request body to activity")
 	}

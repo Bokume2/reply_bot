@@ -3,6 +3,7 @@ package activitypub
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"io"
 	"net/http"
 	"reply_bot/internal/infrastructure/config"
 	"reply_bot/internal/infrastructure/storage"
@@ -43,17 +44,15 @@ func ResolveActivityPubLink(item *activitypub.Item) (*activitypub.Item, error) {
 	if err != nil {
 		return nil, err
 	}
-	buf := make([]byte, res.ContentLength)
-	var len int64 = 0
-	for len < res.ContentLength {
-		l, _ := res.Body.Read(buf[len:])
-		len += int64(l)
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
 	}
 	err = res.Body.Close()
 	if err != nil {
 		return nil, err
 	}
-	it, err = activitypub.UnmarshalJSON(buf[:len])
+	it, err = activitypub.UnmarshalJSON(body)
 	return &it, err
 }
 
