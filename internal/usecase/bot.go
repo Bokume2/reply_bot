@@ -101,7 +101,7 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 		reply := activitypub.ObjectNew(activitypub.NoteType)
 		reply.Content.Set(activitypub.LangRef(language.Japanese), activitypub.Content(replyCont))
 		reply.AttributedTo = schema.UsernameToID(username)
-		reply.InReplyTo = activity.ID
+		reply.InReplyTo = note.ID
 		reply.To.Append(activitypub.PublicNS)
 		reply.CC.Append(schema.UsernameToID(username).AddPath(string(activitypub.Followers)))
 		reply.CC.Append(activity.Actor.GetID())
