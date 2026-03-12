@@ -73,7 +73,7 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 			return err
 		}
 	}
-	return c.NoContent(http.StatusNoContent)
+	return c.NoContent(http.StatusAccepted)
 }
 
 type ActivityBinder struct{}
