@@ -6,9 +6,9 @@ import (
 	"io"
 	"net/http"
 	"reply_bot/internal/infrastructure/config"
+	"reply_bot/internal/infrastructure/external/sig_key"
 	"reply_bot/internal/infrastructure/storage"
 	"reply_bot/internal/interface/schema"
-	"reply_bot/internal/utils"
 	"strings"
 	"time"
 
@@ -66,7 +66,7 @@ func PostActivityPub(signingActor *activitypub.Actor, to, body string) (*http.Re
 	hash := (sha256.Sum256([]byte(body)))
 	digest := "SHA-256=" + base64.StdEncoding.Strict().EncodeToString(hash[:])
 	req.Header.Set("Digest", digest)
-	key, err := utils.ReadPrivKey(utils.PKeyPath(signingActor.PreferredUsername.String()))
+	key, err := sig_key.ReadPrivKey(sig_key.PKeyPath(signingActor.PreferredUsername.String()))
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func GetActivityPub(signingActor *activitypub.Actor, from string) (*http.Respons
 		"application/activity+json",
 	}, ", "))
 	req.Header.Set("Date", time.Now().UTC().Format(http.TimeFormat))
-	key, err := utils.ReadPrivKey(utils.PKeyPath(signingActor.PreferredUsername.String()))
+	key, err := sig_key.ReadPrivKey(sig_key.PKeyPath(signingActor.PreferredUsername.String()))
 	if err != nil {
 		return nil, err
 	}

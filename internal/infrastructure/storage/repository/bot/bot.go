@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 	"reply_bot/internal/infrastructure/config"
+	"reply_bot/internal/infrastructure/external/sig_key"
 	"reply_bot/internal/infrastructure/storage"
 	"reply_bot/internal/interface/schema"
-	"reply_bot/internal/utils"
 	"time"
 
 	apStorage "git.sr.ht/~mariusor/storage-all"
@@ -54,11 +54,11 @@ func (repo BotRepository) CreateBot(ctx context.Context, username, name string) 
 	if err != nil {
 		return nil, err
 	}
-	_, err = utils.GenerateKeys(actor.PreferredUsername.String())
+	_, err = sig_key.GenerateKeys(actor.PreferredUsername.String())
 	if err != nil {
 		return nil, err
 	}
-	pubkey, err := os.ReadFile(utils.PubKeyPath(actor.PreferredUsername.String()))
+	pubkey, err := os.ReadFile(sig_key.PubKeyPath(actor.PreferredUsername.String()))
 	if err != nil {
 		return nil, err
 	}

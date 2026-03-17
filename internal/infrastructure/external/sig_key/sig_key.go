@@ -1,4 +1,4 @@
-package utils
+package sig_key
 
 import (
 	"crypto/rand"

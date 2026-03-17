@@ -8,9 +8,9 @@ import (
 	domainErrors "reply_bot/internal/domain/errors"
 	"reply_bot/internal/infrastructure/config"
 	externalAP "reply_bot/internal/infrastructure/external/activitypub"
+	externalJSONLD "reply_bot/internal/infrastructure/external/jsonld"
 	"reply_bot/internal/interface/schema"
 	"reply_bot/internal/usecase"
-	"reply_bot/internal/utils"
 	"strings"
 
 	"github.com/go-ap/activitypub"
@@ -44,7 +44,7 @@ func (bc BotController) GetByUserName(c *echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return utils.JSONLDResponse(c, http.StatusOK, bot)
+	return externalJSONLD.JSONLDResponse(c, http.StatusOK, bot)
 }
 
 func (bc BotController) GetOutBox(c *echo.Context) error {
@@ -52,7 +52,7 @@ func (bc BotController) GetOutBox(c *echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return utils.JSONLDResponse(c, http.StatusOK, outbox)
+	return externalJSONLD.JSONLDResponse(c, http.StatusOK, outbox)
 }
 
 func (bc BotController) PostInBox(c *echo.Context) error {
@@ -89,7 +89,7 @@ func (bc BotController) GetEndPoints(c *echo.Context) error {
 	if apErrors.IsNotFound(err) {
 		return echo.NewHTTPError(http.StatusNotFound, "That endpoint was not found")
 	}
-	return utils.JSONLDResponse(c, http.StatusOK, item)
+	return externalJSONLD.JSONLDResponse(c, http.StatusOK, item)
 }
 
 type ActivityBinder struct{}
@@ -111,7 +111,7 @@ func (bc BotController) postActivity(ctx context.Context, activity *activitypub.
 	if activity.Actor == nil {
 		return errors.New("actor of activity is nil")
 	}
-	b, err := utils.JSONLDMarshal(activity)
+	b, err := externalJSONLD.JSONLDMarshal(activity)
 	if err != nil {
 		return err
 	}

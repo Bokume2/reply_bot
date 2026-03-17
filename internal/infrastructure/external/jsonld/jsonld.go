@@ -1,4 +1,4 @@
-package utils
+package jsonld
 
 import (
 	"github.com/go-ap/activitypub"
