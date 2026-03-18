@@ -5,15 +5,16 @@ import (
 	"errors"
 	"net/http"
 	"os/signal"
-	"reply_bot/internal/infrastructure/config"
-	"reply_bot/internal/infrastructure/router"
-	"reply_bot/internal/infrastructure/storage"
-	"reply_bot/internal/infrastructure/storage/repository/bot"
-	"reply_bot/internal/infrastructure/template"
-	"reply_bot/internal/interface/controller"
-	"reply_bot/internal/usecase"
 	"syscall"
 	"time"
+
+	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
+	"github.com/Bokume2/reply_bot/internal/infrastructure/router"
+	"github.com/Bokume2/reply_bot/internal/infrastructure/storage"
+	"github.com/Bokume2/reply_bot/internal/infrastructure/storage/repository/bot"
+	"github.com/Bokume2/reply_bot/internal/infrastructure/template"
+	"github.com/Bokume2/reply_bot/internal/interface/controller"
+	"github.com/Bokume2/reply_bot/internal/usecase"
 
 	"github.com/labstack/echo/v5"
 )

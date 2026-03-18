@@ -1,4 +1,4 @@
-module reply_bot
+module github.com/Bokume2/reply_bot
 
 go 1.25.6
 

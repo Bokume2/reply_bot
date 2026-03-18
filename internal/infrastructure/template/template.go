@@ -3,10 +3,11 @@ package template
 import (
 	"log"
 	"path/filepath"
-	"reply_bot/internal/infrastructure/config"
-	"reply_bot/internal/utils"
 	"strings"
 	"text/template"
+
+	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
+	"github.com/Bokume2/reply_bot/internal/utils"
 )
 
 var (

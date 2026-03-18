@@ -6,9 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"reply_bot/internal/infrastructure/config"
-	"reply_bot/internal/infrastructure/storage"
-	"reply_bot/internal/infrastructure/storage/repository/bot"
+
+	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
+	"github.com/Bokume2/reply_bot/internal/infrastructure/storage"
+	"github.com/Bokume2/reply_bot/internal/infrastructure/storage/repository/bot"
 
 	"github.com/go-ap/activitypub"
 )

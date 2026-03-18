@@ -1,8 +1,9 @@
 package schema
 
 import (
-	"reply_bot/internal/infrastructure/config"
 	"strings"
+
+	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
 
 	"github.com/go-ap/activitypub"
 )

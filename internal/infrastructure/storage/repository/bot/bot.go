@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"reply_bot/internal/infrastructure/config"
-	"reply_bot/internal/infrastructure/external/sig_key"
-	"reply_bot/internal/infrastructure/storage"
-	"reply_bot/internal/interface/schema"
 	"time"
+
+	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
+	"github.com/Bokume2/reply_bot/internal/infrastructure/external/sig_key"
+	"github.com/Bokume2/reply_bot/internal/infrastructure/storage"
+	"github.com/Bokume2/reply_bot/internal/interface/schema"
 
 	apStorage "git.sr.ht/~mariusor/storage-all"
 	"github.com/go-ap/activitypub"

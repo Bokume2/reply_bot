@@ -2,8 +2,9 @@ package controller
 
 import (
 	"net/http"
-	"reply_bot/internal/infrastructure/storage"
-	"reply_bot/internal/infrastructure/template"
+
+	"github.com/Bokume2/reply_bot/internal/infrastructure/storage"
+	"github.com/Bokume2/reply_bot/internal/infrastructure/template"
 
 	"git.sr.ht/~mariusor/lw"
 	"github.com/go-ap/webfinger"

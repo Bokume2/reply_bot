@@ -2,8 +2,9 @@ package storage
 
 import (
 	"log"
-	"reply_bot/internal/infrastructure/config"
-	"reply_bot/internal/interface/schema"
+
+	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
+	"github.com/Bokume2/reply_bot/internal/interface/schema"
 
 	apStorage "git.sr.ht/~mariusor/storage-all"
 	"github.com/go-ap/activitypub"

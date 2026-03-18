@@ -1,7 +1,7 @@
 package router
 
 import (
-	"reply_bot/internal/interface/controller"
+	"github.com/Bokume2/reply_bot/internal/interface/controller"
 
 	"github.com/go-ap/webfinger"
 	"github.com/labstack/echo/v5"

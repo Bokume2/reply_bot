@@ -5,12 +5,13 @@ import (
 	"encoding/base64"
 	"io"
 	"net/http"
-	"reply_bot/internal/infrastructure/config"
-	"reply_bot/internal/infrastructure/external/sig_key"
-	"reply_bot/internal/infrastructure/storage"
-	"reply_bot/internal/interface/schema"
 	"strings"
 	"time"
+
+	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
+	"github.com/Bokume2/reply_bot/internal/infrastructure/external/sig_key"
+	"github.com/Bokume2/reply_bot/internal/infrastructure/storage"
+	"github.com/Bokume2/reply_bot/internal/interface/schema"
 
 	"github.com/go-ap/activitypub"
 	apErrors "github.com/go-ap/errors"

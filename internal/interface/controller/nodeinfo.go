@@ -2,7 +2,8 @@ package controller
 
 import (
 	"net/http"
-	"reply_bot/internal/infrastructure/template"
+
+	"github.com/Bokume2/reply_bot/internal/infrastructure/template"
 
 	"github.com/labstack/echo/v5"
 )
