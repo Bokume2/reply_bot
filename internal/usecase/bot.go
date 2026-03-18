@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -100,6 +101,16 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 	}
 	if replyCont != "" {
 		reply := activitypub.ObjectNew(activitypub.NoteType)
+		it, err := buc.repo.LoadAny(ctx, schema.UsernameToID(username).AddPath(string(activitypub.Outbox)))
+		if err != nil {
+			return nil, nil, err
+		}
+		outbox, err := activitypub.ToOrderedCollection(*it)
+		if err != nil {
+			return nil, nil, err
+		}
+		objNum := outbox.TotalItems + 1
+		reply.ID = schema.UsernameToID(username).AddPath("statuses", strconv.Itoa(int(objNum)))
 		reply.Content.Set(activitypub.LangRef(language.Japanese), activitypub.Content(replyCont))
 		reply.AttributedTo = schema.UsernameToID(username)
 		reply.InReplyTo = note.ID
@@ -108,12 +119,20 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 		reply.CC.Append(activity.Actor.GetID())
 		reply.URL = reply.ID
 		reply.Published = time.Now()
+		_, err = buc.repo.SaveAny(ctx, reply)
+		if err != nil {
+			return nil, nil, err
+		}
 
-		replyAct := activitypub.CreateNew(activitypub.EmptyID, reply)
+		replyAct := activitypub.CreateNew(reply.ID.AddPath("/activity"), reply)
 		replyAct.Actor = schema.UsernameToID(username)
 		replyAct.Published = reply.Published
 		replyAct.To = reply.To
 		replyAct.CC = reply.CC
+		_, err = buc.repo.SaveAny(ctx, replyAct)
+		if err != nil {
+			return nil, nil, err
+		}
 
 		_, err = buc.repo.AppendToOutBox(ctx, username, replyAct)
 		if err != nil {

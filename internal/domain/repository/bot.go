@@ -14,4 +14,5 @@ type BotRepository interface {
 	AppendToOutBox(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.OrderedCollection, error)
 	DeleteFromOutBox(ctx context.Context, item *activitypub.Item) error
 	LoadAny(ctx context.Context, id activitypub.IRI) (*activitypub.Item, error)
+	SaveAny(ctx context.Context, item activitypub.Item) (*activitypub.Item, error)
 }

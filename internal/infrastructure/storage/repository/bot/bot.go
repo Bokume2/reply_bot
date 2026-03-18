@@ -167,6 +167,11 @@ func (repo BotRepository) LoadAny(ctx context.Context, id activitypub.IRI) (*act
 	return &item, err
 }
 
+func (repo BotRepository) SaveAny(ctx context.Context, item activitypub.Item) (*activitypub.Item, error) {
+	it, err := repo.store.Save(item)
+	return &it, err
+}
+
 func (repo BotRepository) updateAvatarOfBot(bot *activitypub.Actor) (*activitypub.Actor, error) {
 	if !activitypub.IsNil(bot.Image) {
 		return bot, nil
