@@ -74,6 +74,12 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 	if note.Type != activitypub.NoteType {
 		return nil, nil, nil
 	}
+	if !(activity.To.Contains(schema.UsernameToID(username)) ||
+		activity.Bto.Contains(schema.UsernameToID(username)) ||
+		activity.CC.Contains(schema.UsernameToID(username)) ||
+		activity.BCC.Contains(schema.UsernameToID(username))) {
+		return nil, nil, nil
+	}
 	content, err := utils.RemoveHtmlTagsWithRet(note.Content.String())
 	if err != nil {
 		return nil, nil, err
