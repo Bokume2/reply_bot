@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"math/rand/v2"
 	"regexp"
 	"strconv"
 	"strings"
@@ -14,6 +15,7 @@ import (
 	externalAP "github.com/Bokume2/reply_bot/internal/infrastructure/external/activitypub"
 	"github.com/Bokume2/reply_bot/internal/interface/schema"
 	"github.com/Bokume2/reply_bot/internal/utils"
+	"github.com/Bokume2/reply_bot/pkg/snowflake"
 
 	"github.com/go-ap/activitypub"
 	apErrors "github.com/go-ap/errors"
@@ -107,16 +109,6 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 	}
 	if replyCont != "" {
 		reply := activitypub.ObjectNew(activitypub.NoteType)
-		it, err := buc.repo.LoadAny(ctx, schema.UsernameToID(username).AddPath(string(activitypub.Outbox)))
-		if err != nil {
-			return nil, nil, err
-		}
-		outbox, err := activitypub.ToOrderedCollection(*it)
-		if err != nil {
-			return nil, nil, err
-		}
-		objNum := outbox.TotalItems + 1
-		reply.ID = schema.UsernameToID(username).AddPath("statuses", strconv.Itoa(int(objNum)))
 		reply.Content.Set(activitypub.LangRef(language.Japanese), activitypub.Content(replyCont))
 		reply.AttributedTo = schema.UsernameToID(username)
 		reply.InReplyTo = note.ID
@@ -125,6 +117,8 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 		reply.CC.Append(activity.Actor.GetID())
 		reply.URL = reply.ID
 		reply.Published = time.Now()
+		noteID := snowflake.TimeToSnowflake(reply.Published, uint16(rand.UintN(0x100)))
+		reply.ID = schema.UsernameToID(username).AddPath("/statuses", strconv.FormatUint(noteID, 10))
 		_, err = buc.repo.SaveAny(ctx, reply)
 		if err != nil {
 			return nil, nil, err
