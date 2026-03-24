@@ -21,7 +21,7 @@ func InitStorage() {
 	var err error
 	DataStore, err = apStorage.New(
 		apStorage.WithType(apStorage.FS),
-		apStorage.WithPath(config.DATA_STORAGE_PATH),
+		apStorage.WithPath("storage/ap_data"),
 	)
 	if err != nil {
 		log.Fatal(err)
