@@ -9,10 +9,10 @@ import (
 
 	domainErrors "github.com/Bokume2/reply_bot/internal/domain/errors"
 	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
-	externalAP "github.com/Bokume2/reply_bot/internal/infrastructure/external/activitypub"
-	externalJSONLD "github.com/Bokume2/reply_bot/internal/infrastructure/external/jsonld"
 	"github.com/Bokume2/reply_bot/internal/interface/schema"
 	"github.com/Bokume2/reply_bot/internal/usecase"
+	apUtil "github.com/Bokume2/reply_bot/pkg/activitypub"
+	jldUtil "github.com/Bokume2/reply_bot/pkg/jsonld"
 
 	"github.com/go-ap/activitypub"
 	apErrors "github.com/go-ap/errors"
@@ -45,7 +45,7 @@ func (bc BotController) GetByUserName(c *echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return externalJSONLD.JSONLDResponse(c, http.StatusOK, bot)
+	return jldUtil.JSONLDResponse(c, http.StatusOK, bot)
 }
 
 func (bc BotController) GetOutBox(c *echo.Context) error {
@@ -53,7 +53,7 @@ func (bc BotController) GetOutBox(c *echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return externalJSONLD.JSONLDResponse(c, http.StatusOK, outbox)
+	return jldUtil.JSONLDResponse(c, http.StatusOK, outbox)
 }
 
 func (bc BotController) PostInBox(c *echo.Context) error {
@@ -90,7 +90,7 @@ func (bc BotController) GetEndPoints(c *echo.Context) error {
 	if apErrors.IsNotFound(err) {
 		return echo.NewHTTPError(http.StatusNotFound, "That endpoint was not found")
 	}
-	return externalJSONLD.JSONLDResponse(c, http.StatusOK, item)
+	return jldUtil.JSONLDResponse(c, http.StatusOK, item)
 }
 
 type ActivityBinder struct{}
@@ -112,7 +112,7 @@ func (bc BotController) postActivity(ctx context.Context, activity *activitypub.
 	if activity.Actor == nil {
 		return errors.New("actor of activity is nil")
 	}
-	b, err := externalJSONLD.JSONLDMarshal(activity)
+	b, err := jldUtil.JSONLDMarshal(activity)
 	if err != nil {
 		return err
 	}
@@ -120,6 +120,6 @@ func (bc BotController) postActivity(ctx context.Context, activity *activitypub.
 	if err != nil {
 		return err
 	}
-	_, err = externalAP.PostActivityPub(actor, to.Inbox.GetLink().String(), string(b))
+	_, err = apUtil.PostActivityPub(actor, to.Inbox.GetLink().String(), string(b))
 	return err
 }

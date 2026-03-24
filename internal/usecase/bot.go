@@ -12,9 +12,9 @@ import (
 	"github.com/Bokume2/reply_bot/internal/domain/errors"
 	"github.com/Bokume2/reply_bot/internal/domain/repository"
 	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
-	externalAP "github.com/Bokume2/reply_bot/internal/infrastructure/external/activitypub"
 	"github.com/Bokume2/reply_bot/internal/interface/schema"
-	"github.com/Bokume2/reply_bot/internal/utils"
+	apUtil "github.com/Bokume2/reply_bot/pkg/activitypub"
+	htmlUtil "github.com/Bokume2/reply_bot/pkg/html"
 	"github.com/Bokume2/reply_bot/pkg/snowflake"
 
 	"github.com/go-ap/activitypub"
@@ -82,7 +82,7 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 		activity.BCC.Contains(schema.UsernameToID(username))) {
 		return nil, nil, nil
 	}
-	content, err := utils.RemoveHtmlTagsWithRet(note.Content.String())
+	content, err := htmlUtil.RemoveHtmlTagsWithRet(note.Content.String())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -96,7 +96,7 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 	}
 	var to *activitypub.Actor
 	if activity.Actor.IsLink() {
-		toItem, err := externalAP.ResolveActivityPubLink(&activity.Actor)
+		toItem, err := apUtil.ResolveActivityPubLink(&activity.Actor)
 		if err != nil {
 			return nil, nil, err
 		}
