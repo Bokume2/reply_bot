@@ -10,12 +10,24 @@ import (
 	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
 	"github.com/Bokume2/reply_bot/internal/infrastructure/storage"
 	"github.com/Bokume2/reply_bot/internal/infrastructure/storage/repository/bot"
+	"github.com/Bokume2/reply_bot/internal/interface/schema"
 
 	"github.com/go-ap/activitypub"
+	apErrors "github.com/go-ap/errors"
 )
 
 func CreateBotActor() error {
-	actor, err := bot.NewBotRepository(storage.DataStore).CreateBot(context.Background(), config.BOT_PREFERRED_USERNAME, config.BOT_NAME)
+	// 既にActorが存在する場合は何もしない
+	it, err := storage.DataStore.Load(schema.UsernameToID(config.BOT_PREFERRED_USERNAME))
+	if err != nil && !apErrors.IsNotFound(err) {
+		return err
+	}
+	actor, err := activitypub.ToActor(it)
+	if actor != nil && err == nil {
+		return nil
+	}
+
+	actor, err = bot.NewBotRepository(storage.DataStore).CreateBot(context.Background(), config.BOT_PREFERRED_USERNAME, config.BOT_NAME)
 	if err != nil {
 		return err
 	}
