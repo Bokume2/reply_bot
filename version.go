@@ -1,4 +1,4 @@
-package utils
+package reply_bot
 
 const version string = "0.1.0"
 

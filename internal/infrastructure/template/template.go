@@ -6,8 +6,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/Bokume2/reply_bot"
 	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
-	"github.com/Bokume2/reply_bot/internal/utils"
 )
 
 var (
@@ -40,7 +40,7 @@ func LoadTemplate() {
 		log.Fatal(err)
 	}
 	nibuf := new(strings.Builder)
-	err = nit.Execute(nibuf, nodeInfoTmplData{Version: utils.Version()})
+	err = nit.Execute(nibuf, nodeInfoTmplData{Version: reply_bot.Version()})
 	if err != nil {
 		log.Fatal(err)
 	}
