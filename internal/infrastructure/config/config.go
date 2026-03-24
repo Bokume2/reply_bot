@@ -22,7 +22,7 @@ var Dialogues []ReplyDialogue
 
 func LoadEnv() {
 	if err := godotenv.Load(); err != nil {
-		log.Printf("failed to load .env: %v", err)
+		log.Fatalf("failed to load .env: %v", err)
 	}
 
 	originScheme := "https"
