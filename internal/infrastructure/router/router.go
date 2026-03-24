@@ -42,8 +42,8 @@ func (r *Router) Setup() *echo.Echo {
 	botRouter.GET("/*", r.botController.GetEndPoints)
 
 	// nodeinfo
-	r.echo.GET("/.well-known/nodeinfo", r.wellKnownController.GetNodeInfo)
-	r.echo.GET("/nodeinfo/2.1", r.nodeIndoController.GetNodeInfoContent)
+	r.echo.GET(webfinger.NodeInfoDiscoverPath, r.nodeIndoController.GetNodeInfoDiscover)
+	r.echo.GET(controller.NodeInfoPath, r.nodeIndoController.GetNodeInfoContent)
 
 	// webfinger
 	r.echo.GET(webfinger.WellKnownWebFingerPath, r.wellKnownController.GetWebfinger)

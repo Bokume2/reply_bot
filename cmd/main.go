@@ -12,7 +12,6 @@ import (
 	"github.com/Bokume2/reply_bot/internal/infrastructure/router"
 	"github.com/Bokume2/reply_bot/internal/infrastructure/storage"
 	"github.com/Bokume2/reply_bot/internal/infrastructure/storage/repository/bot"
-	"github.com/Bokume2/reply_bot/internal/infrastructure/template"
 	"github.com/Bokume2/reply_bot/internal/interface/controller"
 	"github.com/Bokume2/reply_bot/internal/usecase"
 
@@ -21,7 +20,6 @@ import (
 
 func main() {
 	config.LoadEnv()
-	template.LoadTemplate()
 	storage.InitStorage()
 
 	br := bot.NewBotRepository(storage.DataStore)
