@@ -9,9 +9,9 @@ import (
 
 	domainErrors "github.com/Bokume2/reply_bot/internal/domain/errors"
 	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
-	externalAP "github.com/Bokume2/reply_bot/internal/infrastructure/external/activitypub"
 	"github.com/Bokume2/reply_bot/internal/interface/schema"
 	"github.com/Bokume2/reply_bot/internal/usecase"
+	apUtil "github.com/Bokume2/reply_bot/pkg/activitypub"
 	jldUtil "github.com/Bokume2/reply_bot/pkg/jsonld"
 
 	"github.com/go-ap/activitypub"
@@ -120,6 +120,6 @@ func (bc BotController) postActivity(ctx context.Context, activity *activitypub.
 	if err != nil {
 		return err
 	}
-	_, err = externalAP.PostActivityPub(actor, to.Inbox.GetLink().String(), string(b))
+	_, err = apUtil.PostActivityPub(actor, to.Inbox.GetLink().String(), string(b))
 	return err
 }
