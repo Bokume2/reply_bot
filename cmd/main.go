@@ -24,9 +24,13 @@ func main() {
 	template.LoadTemplate()
 	storage.InitStorage()
 
+	br := bot.NewBotRepository(storage.DataStore)
+
+	buc := usecase.NewBotUseCase(br)
+
 	nic := controller.NewNodeInfoController()
 	wkc := controller.NewWellKnownController()
-	bc := controller.NewBotController(usecase.NewBotUseCase(bot.NewBotRepository(storage.DataStore)))
+	bc := controller.NewBotController(buc)
 
 	e := router.NewRouter(echo.New(), bc, nic, wkc).Setup()
 
