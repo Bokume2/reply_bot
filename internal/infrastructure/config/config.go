@@ -17,6 +17,11 @@ var (
 	BOT_PREFERRED_USERNAME string
 )
 
+type ReplyDialogue struct {
+	Call  string `yaml:"call"`
+	Reply string `yaml:"reply"`
+}
+
 var Dialogues []ReplyDialogue
 
 func init() {
@@ -39,9 +44,4 @@ func init() {
 	if err = yaml.Unmarshal(rawDialogues, &Dialogues); err != nil {
 		log.Fatal(err)
 	}
-}
-
-type ReplyDialogue struct {
-	Call  string `yaml:"call"`
-	Reply string `yaml:"reply"`
 }
