@@ -181,7 +181,7 @@ func (repo BotRepository) updateAvatarOfBot(bot *activitypub.Actor) (*activitypu
 	if err != nil || info.IsDir() {
 		return bot, nil
 	}
-	url := config.LOCAL_ORIGIN.AddPath(path)
+	url := config.LocalOrigin().AddPath(path)
 	avatar := activitypub.Image{
 		Type:      activitypub.ImageType,
 		MediaType: activitypub.MimeType("image/jpeg"),

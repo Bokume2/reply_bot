@@ -9,11 +9,11 @@ import (
 )
 
 func UsernameToID(username string) activitypub.IRI {
-	return config.LOCAL_ORIGIN.AddPath("/bots", username)
+	return config.LocalOrigin().AddPath("/bots", username)
 }
 
 func IDToUsername(id activitypub.IRI) string {
 	idStr := id.String()
-	idStr = strings.Replace(idStr, config.LOCAL_ORIGIN.AddPath("/bots").String(), "", 1)
+	idStr = strings.Replace(idStr, config.LocalOrigin().AddPath("/bots").String(), "", 1)
 	return strings.Trim(idStr, "/")
 }

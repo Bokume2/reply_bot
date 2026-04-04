@@ -33,7 +33,7 @@ func ResolveActivityPubLink(item *activitypub.Item) (*activitypub.Item, error) {
 		return nil, err
 	}
 
-	actorItem, err := storage.DataStore.Load(schema.UsernameToID(config.BOT_PREFERRED_USERNAME))
+	actorItem, err := storage.DataStore.Load(schema.UsernameToID(config.BotPreferredUsername()))
 	if err != nil {
 		return nil, err
 	}

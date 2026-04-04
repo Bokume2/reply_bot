@@ -31,7 +31,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	item, err := DataStore.Load(schema.UsernameToID(config.BOT_PREFERRED_USERNAME))
+	item, err := DataStore.Load(schema.UsernameToID(config.BotPreferredUsername()))
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return

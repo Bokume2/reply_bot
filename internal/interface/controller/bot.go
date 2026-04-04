@@ -86,7 +86,7 @@ func (bc BotController) GetEndPoints(c *echo.Context) error {
 	if strings.HasSuffix(c.Request().URL.Path, "/inbox") {
 		return echo.NewHTTPError(http.StatusNotFound, "That endpoint was not found")
 	}
-	item, err := bc.buc.GetAny(c.Request().Context(), config.LOCAL_ORIGIN.AddPath(c.Request().URL.Path))
+	item, err := bc.buc.GetAny(c.Request().Context(), config.LocalOrigin().AddPath(c.Request().URL.Path))
 	if apErrors.IsNotFound(err) {
 		return echo.NewHTTPError(http.StatusNotFound, "That endpoint was not found")
 	}
