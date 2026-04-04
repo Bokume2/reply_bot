@@ -36,7 +36,7 @@ func (nic NodeInfoController) GetNodeInfoContent(c *echo.Context) error {
 func niService() *nodeinfo.Service {
 	nicOnce.Do(func() {
 		niCfg := nodeinfo.Config{
-			BaseURL: config.LOCAL_ORIGIN.String(),
+			BaseURL: config.LocalOrigin().String(),
 			InfoURL: NodeInfoPath,
 			Metadata: nodeinfo.Metadata{
 				Software: nodeinfo.SoftwareMeta{

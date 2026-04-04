@@ -86,10 +86,10 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 	if err != nil {
 		return nil, nil, err
 	}
-	mentionRegexp := fmt.Sprintf("@%s(@%s)?", username, config.LOCAL_DOMAIN)
+	mentionRegexp := fmt.Sprintf("@%s(@%s)?", username, config.LocalDomain())
 	content = strings.TrimSpace(regexp.MustCompile(mentionRegexp).ReplaceAllString(content, ""))
 	replyCont := ""
-	for _, v := range config.Dialogues {
+	for _, v := range config.Dialogues() {
 		if content == v.Call {
 			replyCont = v.Reply
 		}

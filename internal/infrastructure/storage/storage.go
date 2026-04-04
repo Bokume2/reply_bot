@@ -13,25 +13,25 @@ import (
 )
 
 var (
-	DataStore        apStorage.FullStorage
-	WebFingerStorage webfinger.Storage
+	dataStore        apStorage.FullStorage
+	webFingerStorage webfinger.Storage
 )
 
-func InitStorage() {
+func init() {
 	var err error
-	DataStore, err = apStorage.New(
+	dataStore, err = apStorage.New(
 		apStorage.WithType(apStorage.FS),
 		apStorage.WithPath("storage/ap_data"),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = DataStore.Open()
+	err = dataStore.Open()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	item, err := DataStore.Load(schema.UsernameToID(config.BOT_PREFERRED_USERNAME))
+	item, err := dataStore.Load(schema.UsernameToID(config.BotPreferredUsername()))
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return
@@ -42,8 +42,16 @@ func InitStorage() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	WebFingerStorage = webfinger.Storage{
-		Store: DataStore,
+	webFingerStorage = webfinger.Storage{
+		Store: dataStore,
 		Root:  *actor,
 	}
+}
+
+func DataStore() apStorage.FullStorage {
+	return dataStore
+}
+
+func WebFingerStorage() webfinger.Storage {
+	return webFingerStorage
 }

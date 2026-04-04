@@ -26,14 +26,14 @@ func ResolveActivityPubLink(item *activitypub.Item) (*activitypub.Item, error) {
 	}
 
 	link := (*item).GetLink()
-	it, err := storage.DataStore.Load(link)
+	it, err := storage.DataStore().Load(link)
 	if err == nil {
 		return &it, nil
 	} else if !apErrors.IsNotFound(err) {
 		return nil, err
 	}
 
-	actorItem, err := storage.DataStore.Load(schema.UsernameToID(config.BOT_PREFERRED_USERNAME))
+	actorItem, err := storage.DataStore().Load(schema.UsernameToID(config.BotPreferredUsername()))
 	if err != nil {
 		return nil, err
 	}
