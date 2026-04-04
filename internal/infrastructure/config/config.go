@@ -17,6 +17,8 @@ var (
 	BOT_PREFERRED_USERNAME string
 )
 
+const OriginScheme = "https"
+
 type ReplyDialogue struct {
 	Call  string `yaml:"call"`
 	Reply string `yaml:"reply"`
@@ -29,10 +31,8 @@ func init() {
 		log.Fatalf("failed to load .env: %v", err)
 	}
 
-	originScheme := "https"
-
 	LOCAL_DOMAIN = os.Getenv("LOCAL_DOMAIN")
-	LOCAL_ORIGIN = activitypub.IRI(fmt.Sprintf("%s://%s", originScheme, LOCAL_DOMAIN))
+	LOCAL_ORIGIN = activitypub.IRI(fmt.Sprintf("%s://%s", OriginScheme, LOCAL_DOMAIN))
 	BOT_NAME = os.Getenv("BOT_NAME")
 	BOT_PREFERRED_USERNAME = os.Getenv("BOT_PREFERRED_USERNAME")
 
