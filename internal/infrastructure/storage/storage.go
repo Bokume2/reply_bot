@@ -17,7 +17,7 @@ var (
 	WebFingerStorage webfinger.Storage
 )
 
-func InitStorage() {
+func init() {
 	var err error
 	DataStore, err = apStorage.New(
 		apStorage.WithType(apStorage.FS),

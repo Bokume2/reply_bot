@@ -19,7 +19,7 @@ var (
 
 var Dialogues []ReplyDialogue
 
-func LoadEnv() {
+func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("failed to load .env: %v", err)
 	}

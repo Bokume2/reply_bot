@@ -45,9 +45,6 @@ func CreateBotActor() error {
 }
 
 func main() {
-	config.LoadEnv()
-	storage.InitStorage()
-
 	fmt.Println()
 	fmt.Println("Starting to generate seed data...")
 	fmt.Println()

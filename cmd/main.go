@@ -8,7 +8,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
 	"github.com/Bokume2/reply_bot/internal/infrastructure/router"
 	"github.com/Bokume2/reply_bot/internal/infrastructure/storage"
 	"github.com/Bokume2/reply_bot/internal/infrastructure/storage/repository/bot"
@@ -19,9 +18,6 @@ import (
 )
 
 func main() {
-	config.LoadEnv()
-	storage.InitStorage()
-
 	br := bot.NewBotRepository(storage.DataStore)
 
 	buc := usecase.NewBotUseCase(br)
