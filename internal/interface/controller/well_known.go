@@ -29,7 +29,7 @@ func (wkc WellKnownController) GetWebfinger(c *echo.Context) error {
 
 func handler() wfHandler {
 	wkcOnce.Do(func() {
-		h = webfinger.New(lw.Dev(), storage.WebFingerStorage)
+		h = webfinger.New(lw.Dev(), storage.WebFingerStorage())
 	})
 	return h
 }

@@ -36,22 +36,22 @@ func (repo BotRepository) CreateBot(ctx context.Context, username, name string) 
 	actor.StartTime = now
 	actor.Updated = now
 	activitypub.Inbox.AddTo(actor)
-	_, err := storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Inbox.GetID()))
+	_, err := storage.DataStore().Save(activitypub.OrderedCollectionNew(actor.Inbox.GetID()))
 	if err != nil {
 		return nil, err
 	}
 	activitypub.Outbox.AddTo(actor)
-	_, err = storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Outbox.GetID()))
+	_, err = storage.DataStore().Save(activitypub.OrderedCollectionNew(actor.Outbox.GetID()))
 	if err != nil {
 		return nil, err
 	}
 	activitypub.Following.AddTo(actor)
-	_, err = storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Following.GetID()))
+	_, err = storage.DataStore().Save(activitypub.OrderedCollectionNew(actor.Following.GetID()))
 	if err != nil {
 		return nil, err
 	}
 	activitypub.Followers.AddTo(actor)
-	_, err = storage.DataStore.Save(activitypub.OrderedCollectionNew(actor.Followers.GetID()))
+	_, err = storage.DataStore().Save(activitypub.OrderedCollectionNew(actor.Followers.GetID()))
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (repo BotRepository) CreateBot(ctx context.Context, username, name string) 
 		Owner:        actor.ID,
 		PublicKeyPem: string(pubkey),
 	}
-	_, err = storage.DataStore.Save(actor)
+	_, err = storage.DataStore().Save(actor)
 	return actor, err
 }
 

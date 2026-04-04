@@ -18,7 +18,7 @@ import (
 
 func CreateBotActor() error {
 	// 既にActorが存在する場合は何もしない
-	it, err := storage.DataStore.Load(schema.UsernameToID(config.BotPreferredUsername()))
+	it, err := storage.DataStore().Load(schema.UsernameToID(config.BotPreferredUsername()))
 	if err != nil && !apErrors.IsNotFound(err) {
 		return err
 	}
@@ -27,7 +27,7 @@ func CreateBotActor() error {
 		return nil
 	}
 
-	actor, err = bot.NewBotRepository(storage.DataStore).CreateBot(context.Background(), config.BotPreferredUsername(), config.BotName())
+	actor, err = bot.NewBotRepository(storage.DataStore()).CreateBot(context.Background(), config.BotPreferredUsername(), config.BotName())
 	if err != nil {
 		return err
 	}

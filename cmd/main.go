@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	br := bot.NewBotRepository(storage.DataStore)
+	br := bot.NewBotRepository(storage.DataStore())
 
 	buc := usecase.NewBotUseCase(br)
 
