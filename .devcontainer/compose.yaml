@@ -1,0 +1,11 @@
+name: reply_bot_devcontainer
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/app
+    command: air
+    ports:
+      - "3000:3000"

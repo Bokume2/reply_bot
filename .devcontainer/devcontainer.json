@@ -1,0 +1,21 @@
+{
+  "name": "Reply Bot DevContainer",
+  "dockerComposeFile": "compose.yaml",
+  "service": "app",
+  "workspaceFolder": "/app",
+
+  "forwardPorts": [3000],
+
+  "remoteUser": "root",
+
+  "overrideCommand": true,
+
+  "onCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+
+  "customizations": {
+    "vscode": {
+      "settings": {},
+      "extensions": ["golang.go"]
+    }
+  }
+}
