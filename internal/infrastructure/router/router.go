@@ -48,5 +48,8 @@ func (r *Router) Setup() *echo.Echo {
 	// webfinger
 	r.echo.GET(webfinger.WellKnownWebFingerPath, r.wellKnownController.GetWebfinger)
 
+	//host-meta
+	r.echo.GET(webfinger.WellKnownHostPath, r.wellKnownController.GetHostMeta)
+
 	return r.echo
 }
