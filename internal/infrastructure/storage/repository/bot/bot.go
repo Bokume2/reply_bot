@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
-	"github.com/Bokume2/reply_bot/internal/infrastructure/storage"
 	"github.com/Bokume2/reply_bot/internal/interface/schema"
 	"github.com/Bokume2/reply_bot/pkg/sig_key"
 
@@ -36,22 +35,22 @@ func (repo BotRepository) CreateBot(ctx context.Context, username, name string) 
 	actor.StartTime = now
 	actor.Updated = now
 	activitypub.Inbox.AddTo(actor)
-	_, err := storage.DataStore().Save(activitypub.OrderedCollectionNew(actor.Inbox.GetID()))
+	_, err := repo.store.Save(activitypub.OrderedCollectionNew(actor.Inbox.GetID()))
 	if err != nil {
 		return nil, err
 	}
 	activitypub.Outbox.AddTo(actor)
-	_, err = storage.DataStore().Save(activitypub.OrderedCollectionNew(actor.Outbox.GetID()))
+	_, err = repo.store.Save(activitypub.OrderedCollectionNew(actor.Outbox.GetID()))
 	if err != nil {
 		return nil, err
 	}
 	activitypub.Following.AddTo(actor)
-	_, err = storage.DataStore().Save(activitypub.OrderedCollectionNew(actor.Following.GetID()))
+	_, err = repo.store.Save(activitypub.OrderedCollectionNew(actor.Following.GetID()))
 	if err != nil {
 		return nil, err
 	}
 	activitypub.Followers.AddTo(actor)
-	_, err = storage.DataStore().Save(activitypub.OrderedCollectionNew(actor.Followers.GetID()))
+	_, err = repo.store.Save(activitypub.OrderedCollectionNew(actor.Followers.GetID()))
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +67,7 @@ func (repo BotRepository) CreateBot(ctx context.Context, username, name string) 
 		Owner:        actor.ID,
 		PublicKeyPem: string(pubkey),
 	}
-	_, err = storage.DataStore().Save(actor)
+	_, err = repo.store.Save(actor)
 	return actor, err
 }
 
