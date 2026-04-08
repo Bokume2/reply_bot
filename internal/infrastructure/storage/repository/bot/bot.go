@@ -104,6 +104,30 @@ func (repo BotRepository) GetOutBox(ctx context.Context, username string) (*acti
 	return outbox, nil
 }
 
+func (repo BotRepository) AppendToFollowers(ctx context.Context, username string, id activitypub.IRI) (*activitypub.OrderedCollection, error) {
+	bot, err := repo.GetByUserName(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	item, err := repo.store.Load(bot.Followers.GetID())
+	if err != nil {
+		return nil, err
+	}
+	followers, err := activitypub.ToOrderedCollection(item)
+	if err != nil {
+		return nil, err
+	}
+	err = followers.Append(id)
+	if err != nil {
+		return nil, err
+	}
+	_, err = repo.store.Save(followers)
+	if err != nil {
+		return nil, err
+	}
+	return followers, nil
+}
+
 func (repo BotRepository) AppendToInBox(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.OrderedCollection, error) {
 	bot, err := repo.GetByUserName(ctx, username)
 	if err != nil {

@@ -25,6 +25,7 @@ import (
 type IBotUseCase interface {
 	GetByUserName(ctx context.Context, username string) (*activitypub.Actor, error)
 	GetOutBox(ctx context.Context, username string) (*activitypub.OrderedCollection, error)
+	AcceptFollowing(ctx context.Context, username string, item *activitypub.Item) (*activitypub.Accept, *activitypub.Actor, error)
 	Reply(ctx context.Context, username string, item *activitypub.Item) (*activitypub.Create, *activitypub.Actor, error)
 	CancelReply(ctx context.Context, item *activitypub.Item) error
 	GetAny(ctx context.Context, id activitypub.IRI) (*activitypub.Item, error)
@@ -55,6 +56,32 @@ func (buc botUseCase) GetOutBox(ctx context.Context, username string) (*activity
 		return nil, err
 	}
 	return bot, nil
+}
+
+func (buc botUseCase) AcceptFollowing(ctx context.Context, username string, item *activitypub.Item) (*activitypub.Accept, *activitypub.Actor, error) {
+	activity, err := activitypub.ToActivity(*item)
+	if err != nil {
+		return nil, nil, err
+	}
+	if activity.Type != activitypub.FollowType {
+		return nil, nil, nil
+	}
+	actorItem, err := apUtil.ResolveActivityPubLink(&activity.Actor)
+	if err != nil {
+		return nil, nil, err
+	}
+	actor, err := activitypub.ToActor(*actorItem)
+	if err != nil {
+		return nil, nil, err
+	}
+	_, err = buc.repo.AppendToFollowers(ctx, username, actor.GetID())
+	if err != nil {
+		return nil, nil, err
+	}
+	accept := activitypub.AcceptNew(activitypub.EmptyID, activity)
+	accept.Actor = schema.UsernameToID(username)
+	accept.Published = time.Now()
+	return accept, actor, nil
 }
 
 func (buc botUseCase) Reply(ctx context.Context, username string, item *activitypub.Item) (*activitypub.Create, *activitypub.Actor, error) {
