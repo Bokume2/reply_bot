@@ -78,8 +78,20 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 		if err != nil {
 			return err
 		}
+		return c.NoContent(http.StatusAccepted)
 	}
-	return c.NoContent(http.StatusAccepted)
+	accept, to, err := bc.buc.AcceptFollowing(c.Request().Context(), c.Param("username"), item)
+	if err != nil {
+		return err
+	}
+	if accept != nil && to != nil {
+		err = bc.postActivity(c.Request().Context(), accept, to)
+		if err != nil {
+			return err
+		}
+		return c.NoContent(http.StatusAccepted)
+	}
+	return echo.NewHTTPError(http.StatusUnprocessableEntity, "That activity is not accepted by this server")
 }
 
 func (bc BotController) GetEndPoints(c *echo.Context) error {
