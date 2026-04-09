@@ -1,0 +1,9 @@
+# git
+.git/
+
+# credential
+.env
+
+# storage
+storage/
+public/
