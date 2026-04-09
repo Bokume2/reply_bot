@@ -5,19 +5,24 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
 	"os"
 )
 
+const CredentialsDir = "storage/cred"
+
 func PKeyPath(username string) string {
-	return fmt.Sprintf("storage/cred/%s.key", username)
+	return CredentialsDir + "/" + username + ".key"
 }
 
 func PubKeyPath(username string) string {
-	return fmt.Sprintf("storage/cred/%s.pub", username)
+	return CredentialsDir + "/" + username + ".pub"
 }
 
 func GenerateKeys(username string) (*rsa.PrivateKey, error) {
+	err := os.MkdirAll(CredentialsDir, 0700)
+	if err != nil {
+		return nil, err
+	}
 	key, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		return nil, err
