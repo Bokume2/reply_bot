@@ -61,15 +61,15 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnsupportedMediaType, "expected application/activity+json")
 	}
 	var ab ActivityBinder
-	item := new(activitypub.Item)
-	if err := ab.Bind(c, item); err != nil {
+	itemPtr := new(activitypub.Item)
+	if err := ab.Bind(c, itemPtr); err != nil {
 		return err
 	}
-	reply, to, err := bc.buc.Reply(c.Request().Context(), c.Param("username"), item)
+	reply, to, err := bc.buc.Reply(c.Request().Context(), c.Param("username"), *itemPtr)
 	if err != nil {
 		if reply != nil {
-			item := activitypub.Item(reply)
-			bc.buc.CancelReply(c.Request().Context(), &item)
+			it := activitypub.Item(reply)
+			bc.buc.CancelReply(c.Request().Context(), it)
 		}
 		return err
 	}
@@ -80,7 +80,7 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 		}
 		return c.NoContent(http.StatusAccepted)
 	}
-	accept, to, err := bc.buc.AcceptFollowing(c.Request().Context(), c.Param("username"), item)
+	accept, to, err := bc.buc.AcceptFollowing(c.Request().Context(), c.Param("username"), *itemPtr)
 	if err != nil {
 		return err
 	}
@@ -107,7 +107,7 @@ func (bc BotController) GetEndPoints(c *echo.Context) error {
 
 type ActivityBinder struct{}
 
-func (ab ActivityBinder) Bind(c *echo.Context, item *activitypub.Item) error {
+func (ab ActivityBinder) Bind(c *echo.Context, itemPtr *activitypub.Item) error {
 	body, err := io.ReadAll(c.Request().Body)
 	if err != nil {
 		return err
@@ -116,7 +116,7 @@ func (ab ActivityBinder) Bind(c *echo.Context, item *activitypub.Item) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnsupportedMediaType, "failed to convert request body to activity")
 	}
-	*item = i
+	*itemPtr = i
 	return nil
 }
 

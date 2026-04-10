@@ -25,10 +25,10 @@ import (
 type IBotUseCase interface {
 	GetByUserName(ctx context.Context, username string) (*activitypub.Actor, error)
 	GetOutBox(ctx context.Context, username string) (*activitypub.OrderedCollection, error)
-	AcceptFollowing(ctx context.Context, username string, item *activitypub.Item) (*activitypub.Accept, *activitypub.Actor, error)
-	Reply(ctx context.Context, username string, item *activitypub.Item) (*activitypub.Create, *activitypub.Actor, error)
-	CancelReply(ctx context.Context, item *activitypub.Item) error
-	GetAny(ctx context.Context, id activitypub.IRI) (*activitypub.Item, error)
+	AcceptFollowing(ctx context.Context, username string, item activitypub.Item) (*activitypub.Accept, *activitypub.Actor, error)
+	Reply(ctx context.Context, username string, item activitypub.Item) (*activitypub.Create, *activitypub.Actor, error)
+	CancelReply(ctx context.Context, item activitypub.Item) error
+	GetAny(ctx context.Context, id activitypub.IRI) (activitypub.Item, error)
 }
 
 type botUseCase struct {
@@ -58,19 +58,19 @@ func (buc botUseCase) GetOutBox(ctx context.Context, username string) (*activity
 	return bot, nil
 }
 
-func (buc botUseCase) AcceptFollowing(ctx context.Context, username string, item *activitypub.Item) (*activitypub.Accept, *activitypub.Actor, error) {
-	activity, err := activitypub.ToActivity(*item)
+func (buc botUseCase) AcceptFollowing(ctx context.Context, username string, item activitypub.Item) (*activitypub.Accept, *activitypub.Actor, error) {
+	activity, err := activitypub.ToActivity(item)
 	if err != nil {
 		return nil, nil, err
 	}
 	if activity.Type != activitypub.FollowType {
 		return nil, nil, nil
 	}
-	actorItem, err := apUtil.ResolveActivityPubLink(&activity.Actor)
+	actorItem, err := apUtil.ResolveActivityPubLink(activity.Actor)
 	if err != nil {
 		return nil, nil, err
 	}
-	actor, err := activitypub.ToActor(*actorItem)
+	actor, err := activitypub.ToActor(actorItem)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -84,8 +84,8 @@ func (buc botUseCase) AcceptFollowing(ctx context.Context, username string, item
 	return accept, actor, nil
 }
 
-func (buc botUseCase) Reply(ctx context.Context, username string, item *activitypub.Item) (*activitypub.Create, *activitypub.Actor, error) {
-	activity, err := activitypub.ToActivity(*item)
+func (buc botUseCase) Reply(ctx context.Context, username string, item activitypub.Item) (*activitypub.Create, *activitypub.Actor, error) {
+	activity, err := activitypub.ToActivity(item)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -123,11 +123,11 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 	}
 	var to *activitypub.Actor
 	if activity.Actor.IsLink() {
-		toItem, err := apUtil.ResolveActivityPubLink(&activity.Actor)
+		toItem, err := apUtil.ResolveActivityPubLink(activity.Actor)
 		if err != nil {
 			return nil, nil, err
 		}
-		to, err = activitypub.ToActor(*toItem)
+		to, err = activitypub.ToActor(toItem)
 	} else {
 		to, err = activitypub.ToActor(activity.Actor)
 	}
@@ -170,10 +170,10 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item *activity
 	return nil, nil, nil
 }
 
-func (buc botUseCase) CancelReply(ctx context.Context, item *activitypub.Item) error {
+func (buc botUseCase) CancelReply(ctx context.Context, item activitypub.Item) error {
 	return buc.repo.DeleteFromOutBox(ctx, item)
 }
 
-func (buc botUseCase) GetAny(ctx context.Context, id activitypub.IRI) (*activitypub.Item, error) {
+func (buc botUseCase) GetAny(ctx context.Context, id activitypub.IRI) (activitypub.Item, error) {
 	return buc.repo.LoadAny(ctx, id)
 }

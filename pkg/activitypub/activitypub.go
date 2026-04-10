@@ -20,15 +20,15 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
-func ResolveActivityPubLink(item *activitypub.Item) (*activitypub.Item, error) {
-	if !(*item).IsLink() {
+func ResolveActivityPubLink(item activitypub.Item) (activitypub.Item, error) {
+	if !item.IsLink() {
 		return item, nil
 	}
 
-	link := (*item).GetLink()
+	link := item.GetLink()
 	it, err := storage.DataStore().Load(link)
 	if err == nil {
-		return &it, nil
+		return it, nil
 	} else if !apErrors.IsNotFound(err) {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func ResolveActivityPubLink(item *activitypub.Item) (*activitypub.Item, error) {
 		return nil, err
 	}
 	it, err = activitypub.UnmarshalJSON(body)
-	return &it, err
+	return it, err
 }
 
 func PostActivityPub(signingActor *activitypub.Actor, to, body string) (*http.Response, error) {
