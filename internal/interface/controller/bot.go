@@ -74,6 +74,10 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 		return err
 	}
 	if reply != nil && to != nil {
+		err = bc.verifyRequest(c.Request(), to)
+		if err != nil {
+			return err
+		}
 		err = bc.postActivity(c.Request().Context(), reply, to)
 		if err != nil {
 			return err
@@ -85,6 +89,10 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 		return err
 	}
 	if accept != nil && to != nil {
+		err = bc.verifyRequest(c.Request(), to)
+		if err != nil {
+			return err
+		}
 		err = bc.postActivity(c.Request().Context(), accept, to)
 		if err != nil {
 			return err
@@ -117,6 +125,13 @@ func (ab ActivityBinder) Bind(c *echo.Context, itemPtr *activitypub.Item) error 
 		return echo.NewHTTPError(http.StatusUnsupportedMediaType, "failed to convert request body to activity")
 	}
 	*itemPtr = i
+	return nil
+}
+
+func (bc BotController) verifyRequest(req *http.Request, actor *activitypub.Actor) error {
+	if apUtil.VerifyActivityRequest(req, actor) != nil {
+		return echo.NewHTTPError(http.StatusForbidden, "Request not signed")
+	}
 	return nil
 }
 
