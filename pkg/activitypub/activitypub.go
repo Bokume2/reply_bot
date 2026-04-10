@@ -24,6 +24,30 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
+var (
+	requiredHeadersPost = []string{
+		"(request-target)",
+		"host",
+		"date",
+		"content-type",
+		"digest",
+	}
+	requiredHeadersGet = []string{
+		"(request-target)",
+		"host",
+		"date",
+		"accept",
+	}
+)
+
+func RequiredHeadersPost() []string {
+	return requiredHeadersPost
+}
+
+func RequiredHeadersGet() []string {
+	return requiredHeadersGet
+}
+
 func ResolveActivityPubLink(item activitypub.Item) (activitypub.Item, error) {
 	if !item.IsLink() {
 		return item, nil
@@ -75,13 +99,7 @@ func PostActivityPub(signingActor *activitypub.Actor, to, body string) (*http.Re
 	if err != nil {
 		return nil, err
 	}
-	signer := httpsig.NewRSASHA256Signer(signingActor.PublicKey.ID.String(), key, []string{
-		"(request-target)",
-		"host",
-		"date",
-		"content-type",
-		"digest",
-	})
+	signer := httpsig.NewRSASHA256Signer(signingActor.PublicKey.ID.String(), key, RequiredHeadersPost())
 	err = signer.Sign(req)
 	if err != nil {
 		return nil, err
@@ -103,17 +121,27 @@ func GetActivityPub(signingActor *activitypub.Actor, from string) (*http.Respons
 	if err != nil {
 		return nil, err
 	}
-	signer := httpsig.NewRSASHA256Signer(signingActor.PublicKey.ID.String(), key, []string{
-		"(request-target)",
-		"host",
-		"date",
-		"accept",
-	})
+	signer := httpsig.NewRSASHA256Signer(signingActor.PublicKey.ID.String(), key, RequiredHeadersGet())
 	err = signer.Sign(req)
 	if err != nil {
 		return nil, err
 	}
 	return new(http.Client).Do(req)
+}
+
+func VerifyActivityRequest(req *http.Request, actor *activitypub.Actor) error {
+	kgf := httpsig.KeyGetterFunc(func(id string) (any, error) {
+		return GetRemotePubkey(actor, id)
+	})
+	verifier := httpsig.NewVerifier(kgf)
+	switch req.Method {
+	case "GET":
+		verifier.SetRequiredHeaders(RequiredHeadersGet())
+	default:
+		verifier.SetRequiredHeaders(RequiredHeadersPost())
+	}
+	_, err := verifier.Verify(req)
+	return err
 }
 
 func GetRemotePubkey(actor *activitypub.Actor, id string) (pubkey any, err error) {
