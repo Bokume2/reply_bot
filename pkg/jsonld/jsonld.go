@@ -14,9 +14,7 @@ func JSONLDMarshal(obj any, ctx ...jsonld.Collapsible) ([]byte, error) {
 		}
 	}
 	payload := jsonld.WithContext(ctx...)
-	payload.Obj = obj
-	b, err := jsonld.Marshal(payload)
-	return b, err
+	return payload.Marshal(obj)
 }
 
 func JSONLDResponse(c *echo.Context, code int, obj any) error {
@@ -24,6 +22,5 @@ func JSONLDResponse(c *echo.Context, code int, obj any) error {
 	if err != nil {
 		return err
 	}
-	c.Response().Header().Set(echo.HeaderContentType, "application/activity+json")
-	return c.String(code, string(b))
+	return c.Blob(code, "application/activity+json", b)
 }
