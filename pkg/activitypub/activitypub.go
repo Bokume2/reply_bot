@@ -2,9 +2,13 @@ package activitypub
 
 import (
 	"crypto/sha256"
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
+	"errors"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -110,4 +114,66 @@ func GetActivityPub(signingActor *activitypub.Actor, from string) (*http.Respons
 		return nil, err
 	}
 	return new(http.Client).Do(req)
+}
+
+func GetRemotePubkey(actor *activitypub.Actor, id string) (pubkey any, err error) {
+	pubkey, err = getRemotePubkeyByActor(actor)
+	if pubkey != nil {
+		return
+	}
+	pubkey, err = getRemotePubkeyByID(id)
+	return
+}
+
+func getRemotePubkeyByActor(actor *activitypub.Actor) (any, error) {
+	if actor.PublicKey.PublicKeyPem != "" {
+		return parsePubkeyPem(actor.PublicKey.PublicKeyPem)
+	} else if actor.PublicKey.ID != activitypub.EmptyID {
+		return getRemotePubkeyByID(actor.PublicKey.ID.String())
+	}
+	return nil, errors.New("Failed to get remote public key by actor.")
+}
+
+func getRemotePubkeyByID(id string) (any, error) {
+	res, err := http.Get(id)
+	if err != nil {
+		return nil, err
+	}
+	cont, err := io.ReadAll(res.Body)
+	defer func() {
+		_ = res.Body.Close()
+	}()
+	if err != nil {
+		return nil, err
+	}
+	err = res.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+	it, err := activitypub.UnmarshalJSON(cont)
+	if err == nil {
+		actor, err := activitypub.ToActor(it)
+		if actor != nil && err == nil {
+			return getRemotePubkeyByActor(actor)
+		}
+	}
+	return parsePubkeyPem(string(cont))
+}
+
+func ParseKeyId(req *http.Request) (string, error) {
+	signature, ok := req.Header["Signature"]
+	if !ok || len(signature) != 1 {
+		return "", errors.New("Request has no valid signature")
+	}
+	idReg := regexp.MustCompile(`keyId="(?P<keyId>.*?)"`)
+	matches := idReg.FindAllStringSubmatch(signature[0], 1)
+	if matches == nil {
+		return "", errors.New("Signature of request is not valid")
+	}
+	return matches[0][idReg.SubexpIndex("keyId")], nil
+}
+
+func parsePubkeyPem(s string) (any, error) {
+	block, _ := pem.Decode([]byte(s))
+	return x509.ParsePKIXPublicKey(block.Bytes)
 }
