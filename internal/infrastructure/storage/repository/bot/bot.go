@@ -175,24 +175,24 @@ func (repo BotRepository) AppendToOutBox(ctx context.Context, username string, a
 	return outbox, nil
 }
 
-func (repo BotRepository) DeleteFromOutBox(ctx context.Context, item *activitypub.Item) error {
-	_, err := repo.store.Load((*item).GetID())
+func (repo BotRepository) DeleteFromOutBox(ctx context.Context, item activitypub.Item) error {
+	_, err := repo.store.Load((item).GetID())
 	if errors.IsNotFound(err) {
 		return nil
 	} else if err != nil {
 		return err
 	}
-	return repo.store.Delete(*item)
+	return repo.store.Delete(item)
 }
 
-func (repo BotRepository) LoadAny(ctx context.Context, id activitypub.IRI) (*activitypub.Item, error) {
+func (repo BotRepository) LoadAny(ctx context.Context, id activitypub.IRI) (activitypub.Item, error) {
 	item, err := repo.store.Load(id)
-	return &item, err
+	return item, err
 }
 
-func (repo BotRepository) SaveAny(ctx context.Context, item activitypub.Item) (*activitypub.Item, error) {
+func (repo BotRepository) SaveAny(ctx context.Context, item activitypub.Item) (activitypub.Item, error) {
 	it, err := repo.store.Save(item)
-	return &it, err
+	return it, err
 }
 
 func (repo BotRepository) updateAvatarOfBot(bot *activitypub.Actor) (*activitypub.Actor, error) {

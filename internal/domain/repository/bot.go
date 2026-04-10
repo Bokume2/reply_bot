@@ -13,7 +13,7 @@ type BotRepository interface {
 	AppendToFollowers(ctx context.Context, username string, id activitypub.IRI) (*activitypub.OrderedCollection, error)
 	AppendToInBox(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.OrderedCollection, error)
 	AppendToOutBox(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.OrderedCollection, error)
-	DeleteFromOutBox(ctx context.Context, item *activitypub.Item) error
-	LoadAny(ctx context.Context, id activitypub.IRI) (*activitypub.Item, error)
-	SaveAny(ctx context.Context, item activitypub.Item) (*activitypub.Item, error)
+	DeleteFromOutBox(ctx context.Context, item activitypub.Item) error
+	LoadAny(ctx context.Context, id activitypub.IRI) (activitypub.Item, error)
+	SaveAny(ctx context.Context, item activitypub.Item) (activitypub.Item, error)
 }
