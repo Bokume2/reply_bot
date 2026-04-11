@@ -127,6 +127,24 @@ func (repo BotRepository) AppendToFollowers(ctx context.Context, username string
 	return followers, nil
 }
 
+func (repo BotRepository) DeleteFromFollowers(ctx context.Context, username string, id activitypub.IRI) error {
+	bot, err := repo.GetByUserName(ctx, username)
+	if err != nil {
+		return err
+	}
+	item, err := repo.store.Load(bot.Followers.GetID())
+	if err != nil {
+		return err
+	}
+	followers, err := activitypub.ToOrderedCollection(item)
+	if err != nil {
+		return err
+	}
+	followers.Remove(id)
+	_, err = repo.store.Save(followers)
+	return err
+}
+
 func (repo BotRepository) AppendToInBox(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.OrderedCollection, error) {
 	bot, err := repo.GetByUserName(ctx, username)
 	if err != nil {

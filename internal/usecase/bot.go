@@ -26,6 +26,7 @@ type IBotUseCase interface {
 	GetByUserName(ctx context.Context, username string) (*activitypub.Actor, error)
 	GetOutBox(ctx context.Context, username string) (*activitypub.OrderedCollection, error)
 	AcceptFollowing(ctx context.Context, username string, item activitypub.Item) (*activitypub.Accept, *activitypub.Actor, error)
+	Unfollow(ctx context.Context, username string, item activitypub.Item) (bool, error)
 	Reply(ctx context.Context, username string, item activitypub.Item) (*activitypub.Create, *activitypub.Actor, error)
 	CancelReply(ctx context.Context, item activitypub.Item) error
 	GetAny(ctx context.Context, id activitypub.IRI) (activitypub.Item, error)
@@ -82,6 +83,32 @@ func (buc botUseCase) AcceptFollowing(ctx context.Context, username string, item
 	accept.Actor = schema.UsernameToID(username)
 	accept.Published = time.Now()
 	return accept, actor, nil
+}
+
+func (buc botUseCase) Unfollow(ctx context.Context, username string, item activitypub.Item) (done bool, err error) {
+	done = false
+	activity, err := activitypub.ToActivity(item)
+	if err != nil {
+		return
+	}
+	if activity.Type != activitypub.UndoType {
+		return
+	}
+	it, err := apUtil.ResolveActivityPubLink(activity.Object)
+	if err != nil {
+		return
+	}
+	follow, err := activitypub.ToActivity(it)
+	if err != nil {
+		return
+	} else if follow.Type != activitypub.FollowType {
+		return
+	} else if !activity.Actor.GetID().Equal(follow.Actor.GetID()) {
+		return
+	}
+	err = buc.repo.DeleteFromFollowers(ctx, username, follow.Actor.GetID())
+	done = true
+	return
 }
 
 func (buc botUseCase) Reply(ctx context.Context, username string, item activitypub.Item) (*activitypub.Create, *activitypub.Actor, error) {
