@@ -119,7 +119,11 @@ func (ab ActivityBinder) Bind(c *echo.Context, itemPtr *activitypub.Item) error 
 	if err != nil {
 		return err
 	}
-	i, err := activitypub.UnmarshalJSON(body)
+	compacted, err := jldUtil.JSONCompact(body)
+	if err != nil {
+		return err
+	}
+	i, err := activitypub.UnmarshalJSON(compacted)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnsupportedMediaType, "failed to convert request body to activity")
 	}

@@ -1,8 +1,11 @@
 package jsonld
 
 import (
+	"encoding/json"
+
 	"github.com/go-ap/jsonld"
 	"github.com/labstack/echo/v5"
+	"github.com/piprate/json-gold/ld"
 )
 
 const contextKey = "@context"
@@ -35,6 +38,21 @@ func JSONLDMarshal(obj any, ctx ...jsonld.Collapsible) ([]byte, error) {
 	}
 	payload := jsonld.WithContext(ctx...)
 	return payload.Marshal(obj)
+}
+
+func JSONCompact(doc []byte) ([]byte, error) {
+	objPtr := new(any)
+	err := json.Unmarshal(doc, objPtr)
+	if err != nil {
+		return nil, err
+	}
+	proc := ld.NewJsonLdProcessor()
+	opts := ld.NewJsonLdOptions("")
+	compacted, err := proc.Compact(*objPtr, DefautContext(), opts)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(compacted)
 }
 
 func JSONLDResponse(c *echo.Context, code int, obj any) error {

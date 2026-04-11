@@ -13,6 +13,7 @@ require (
 	github.com/goccy/go-yaml v1.19.2
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v5 v5.0.4
+	github.com/piprate/json-gold v0.8.0
 	github.com/writeas/go-nodeinfo v1.0.0
 	golang.org/x/net v0.52.0
 	golang.org/x/text v0.35.0
@@ -24,6 +25,7 @@ require (
 	github.com/RoaringBitmap/roaring v1.9.4 // indirect
 	github.com/bits-and-blooms/bitset v1.24.4 // indirect
 	github.com/captncraig/cors v0.0.0-20190703115713-e80254a89df1 // indirect
+	github.com/cayleygraph/quad v1.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dgraph-io/badger/v4 v4.9.1 // indirect
 	github.com/dgraph-io/ristretto/v2 v2.4.0 // indirect
@@ -51,6 +53,7 @@ require (
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/openshift/osin v1.0.2-0.20220317075346-0f4d38c6e53f // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
+	github.com/pquerna/cachecontrol v0.2.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/rs/zerolog v1.34.0 // indirect

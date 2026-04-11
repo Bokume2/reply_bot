@@ -15,6 +15,7 @@ import (
 	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
 	"github.com/Bokume2/reply_bot/internal/infrastructure/storage"
 	"github.com/Bokume2/reply_bot/internal/interface/schema"
+	jldUtil "github.com/Bokume2/reply_bot/pkg/jsonld"
 	"github.com/Bokume2/reply_bot/pkg/sig_key"
 
 	"github.com/go-ap/activitypub"
@@ -80,8 +81,11 @@ func ResolveActivityPubLink(item activitypub.Item) (activitypub.Item, error) {
 	if err != nil {
 		return nil, err
 	}
-	it, err = activitypub.UnmarshalJSON(body)
-	return it, err
+	compacted, err := jldUtil.JSONCompact(body)
+	if err != nil {
+		return nil, err
+	}
+	return activitypub.UnmarshalJSON(compacted)
 }
 
 func PostActivityPub(signingActor *activitypub.Actor, to, body string) (*http.Response, error) {
@@ -177,7 +181,11 @@ func getRemotePubkeyByID(id string) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	it, err := activitypub.UnmarshalJSON(cont)
+	compactCont, err := jldUtil.JSONCompact(cont)
+	if err != nil {
+		return nil, err
+	}
+	it, err := activitypub.UnmarshalJSON(compactCont)
 	if err == nil {
 		actor, err := activitypub.ToActor(it)
 		if actor != nil && err == nil {
