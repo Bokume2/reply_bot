@@ -28,6 +28,8 @@ C3クリエイタソン Snowカップにて作成を開始した作品です。
    ```bash
    go run scripts/seeds.go
    ```
+1. \[Optional\] 任意でBotのアイコン画像をJPEG形式で用意し、public/avatars/\${BOT_PREFERRED_USERNAME}.jpgに保存します。\${BOT_PREFERRED_USERNAME}は.envの設定値で置き換えてください。  
+   アイコン画像は後からでも追加可能ですが、一度画像を設定したあとに別の画像に差し替えるとリモートへの反映には時間が掛かります。  
 1. サーバーを起動します。ポート3000でlistenを開始します。  
    ```bash
    go run cmd/main.go
@@ -57,6 +59,8 @@ C3クリエイタソン Snowカップにて作成を開始した作品です。
    ```bash
    docker compose run --rm app /bin/seeds
    ```
+1. \[Optional\] 任意でBotのアイコン画像をJPEG形式で用意し、public/avatars/\${BOT_PREFERRED_USERNAME}.jpgに保存します。\${BOT_PREFERRED_USERNAME}は.envの設定値で置き換えてください。  
+   アイコン画像は後からでも追加可能ですが、一度画像を設定したあとに別の画像に差し替えるとリモートへの反映には時間が掛かります。  
 1. サーバーを起動します。ポート3000でlistenを開始します。  
    ```bash
    docker compose up -d
