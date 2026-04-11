@@ -20,7 +20,6 @@ import (
 	"github.com/go-ap/activitypub"
 	apErrors "github.com/go-ap/errors"
 	"github.com/go-ap/httpsig"
-	"github.com/go-ap/jsonld"
 	"github.com/labstack/echo/v5"
 )
 
@@ -113,7 +112,7 @@ func GetActivityPub(signingActor *activitypub.Actor, from string) (*http.Respons
 		return nil, err
 	}
 	req.Header.Set(echo.HeaderAccept, strings.Join([]string{
-		jsonld.ContentType,
+		"application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"",
 		"application/activity+json",
 	}, ", "))
 	req.Header.Set("Date", time.Now().UTC().Format(http.TimeFormat))
