@@ -16,7 +16,6 @@ import (
 
 	"github.com/go-ap/activitypub"
 	apErrors "github.com/go-ap/errors"
-	"github.com/go-ap/jsonld"
 	"github.com/labstack/echo/v5"
 )
 
@@ -57,7 +56,7 @@ func (bc BotController) GetOutBox(c *echo.Context) error {
 }
 
 func (bc BotController) PostInBox(c *echo.Context) error {
-	if c.Request().Header.Get(echo.HeaderContentType) != "application/activity+json" && c.Request().Header.Get(echo.HeaderContentType) != jsonld.ContentType {
+	if c.Request().Header.Get(echo.HeaderContentType) != "application/activity+json" && c.Request().Header.Get(echo.HeaderContentType) != "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"" {
 		return echo.NewHTTPError(http.StatusUnsupportedMediaType, "expected application/activity+json")
 	}
 	var ab ActivityBinder
@@ -120,7 +119,11 @@ func (ab ActivityBinder) Bind(c *echo.Context, itemPtr *activitypub.Item) error 
 	if err != nil {
 		return err
 	}
-	i, err := activitypub.UnmarshalJSON(body)
+	compacted, err := jldUtil.JSONCompact(body)
+	if err != nil {
+		return err
+	}
+	i, err := activitypub.UnmarshalJSON(compacted)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnsupportedMediaType, "failed to convert request body to activity")
 	}

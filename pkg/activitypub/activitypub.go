@@ -15,12 +15,12 @@ import (
 	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
 	"github.com/Bokume2/reply_bot/internal/infrastructure/storage"
 	"github.com/Bokume2/reply_bot/internal/interface/schema"
+	jldUtil "github.com/Bokume2/reply_bot/pkg/jsonld"
 	"github.com/Bokume2/reply_bot/pkg/sig_key"
 
 	"github.com/go-ap/activitypub"
 	apErrors "github.com/go-ap/errors"
 	"github.com/go-ap/httpsig"
-	"github.com/go-ap/jsonld"
 	"github.com/labstack/echo/v5"
 )
 
@@ -81,8 +81,11 @@ func ResolveActivityPubLink(item activitypub.Item) (activitypub.Item, error) {
 	if err != nil {
 		return nil, err
 	}
-	it, err = activitypub.UnmarshalJSON(body)
-	return it, err
+	compacted, err := jldUtil.JSONCompact(body)
+	if err != nil {
+		return nil, err
+	}
+	return activitypub.UnmarshalJSON(compacted)
 }
 
 func PostActivityPub(signingActor *activitypub.Actor, to, body string) (*http.Response, error) {
@@ -113,7 +116,7 @@ func GetActivityPub(signingActor *activitypub.Actor, from string) (*http.Respons
 		return nil, err
 	}
 	req.Header.Set(echo.HeaderAccept, strings.Join([]string{
-		jsonld.ContentType,
+		"application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"",
 		"application/activity+json",
 	}, ", "))
 	req.Header.Set("Date", time.Now().UTC().Format(http.TimeFormat))
@@ -178,7 +181,11 @@ func getRemotePubkeyByID(id string) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	it, err := activitypub.UnmarshalJSON(cont)
+	compactCont, err := jldUtil.JSONCompact(cont)
+	if err != nil {
+		return nil, err
+	}
+	it, err := activitypub.UnmarshalJSON(compactCont)
 	if err == nil {
 		actor, err := activitypub.ToActor(it)
 		if actor != nil && err == nil {
