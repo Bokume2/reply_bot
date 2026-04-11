@@ -3,7 +3,7 @@
 C3クリエイタソン Snowカップにて作成を開始した作品です。  
 
 ## Requirements
-ビルドにはGoが必要です。
+ビルドにはGoが必要です。  
 想定されるGoのバージョンは[go.mod](./go.mod)を参照してください。  
 
 ## Usage
@@ -64,10 +64,10 @@ C3クリエイタソン Snowカップにて作成を開始した作品です。
 
 ## Development
 Visual Studio CodeのDev Container拡張機能に対応しています。VSCodeを開発コンテナで起動後、各種設定ファイルを記述してから開発コンテナのターミナルで`air`を実行するとホットリロード付きの開発サーバーが起動します。  
-あるいは、.devcontiner/compose.yamlを使用して直接Docker Composeで起動することもできます。この場合、コンテナの起動と同時に自動で`air`が実行されます。  
+あるいは、[.devcontiner/compose.yaml](./.devcontainer/compose.yaml)を使用して直接Docker Composeで起動することもできます。この場合、コンテナの起動と同時に自動で`air`が実行されます。  
 
 ## Samples
-samplesディレクトリ内のファイルはreply_dialogues.yamlの設定例です。  
+[samples](./samples/)ディレクトリ内のファイルはreply_dialogues.yamlの設定例です。  
 設定時の参考になれば幸いです。  
 
 ## License
