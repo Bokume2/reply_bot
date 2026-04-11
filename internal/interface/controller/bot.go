@@ -98,6 +98,13 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 		}
 		return c.NoContent(http.StatusAccepted)
 	}
+	done, err := bc.buc.Unfollow(c.Request().Context(), c.Param("username"), *itemPtr)
+	if err != nil {
+		return err
+	}
+	if done {
+		return c.NoContent(http.StatusAccepted)
+	}
 	return echo.NewHTTPError(http.StatusUnprocessableEntity, "That activity is not accepted by this server")
 }
 
