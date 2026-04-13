@@ -76,10 +76,66 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 	if err = bc.verifyRequest(c.Request(), postedActor); err != nil {
 		return err
 	}
-	reply, to, err := bc.buc.Reply(c.Request().Context(), c.Param("username"), postedActivity)
+	bot, err := bc.buc.GetByUserName(c.Request().Context(), c.Param("username"))
+	if err != nil {
+		return err
+	}
+	switch postedActivity.Type {
+	case activitypub.CreateType:
+		it, err := apUtil.ResolveActivityPubLink(postedActivity.Object)
+		if err != nil {
+			return err
+		}
+		note, err := activitypub.ToObject(it)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnprocessableEntity, "object of activity must be Object or Linke type")
+		}
+		postedActivity.Object = note
+		if note.Type != activitypub.NoteType {
+			return c.NoContent(http.StatusAccepted)
+		}
+		if !(postedActivity.To.Contains(bot.ID) ||
+			postedActivity.Bto.Contains(bot.ID) ||
+			postedActivity.CC.Contains(bot.ID) ||
+			postedActivity.BCC.Contains(bot.ID)) {
+			return c.NoContent(http.StatusAccepted)
+		}
+		return bc.handleReply(c, postedActivity)
+	case activitypub.FollowType:
+		if !postedActivity.Object.GetID().Equal(bot.ID) {
+			return c.NoContent(http.StatusAccepted)
+		}
+		return bc.handleFollow(c, postedActivity)
+	case activitypub.UndoType:
+		it, err := apUtil.ResolveActivityPubLink(postedActivity.Object)
+		if err != nil {
+			return err
+		}
+		follow, err := activitypub.ToActivity(it)
+		if err != nil {
+			return c.NoContent(http.StatusAccepted)
+		}
+		postedActivity.Object = follow
+		if follow.Type != activitypub.FollowType || !follow.Object.GetID().Equal(bot.ID) {
+			return c.NoContent(http.StatusAccepted)
+		}
+		if !postedActivity.Actor.GetID().Equal(follow.Actor.GetID()) {
+			return echo.NewHTTPError(http.StatusUnprocessableEntity, "Actor of Undo activity must be same to actor of object of activity")
+		}
+		return bc.handleUnfollow(c, postedActivity)
+	default:
+		return c.NoContent(http.StatusAccepted)
+	}
+}
+
+func (bc BotController) handleReply(c *echo.Context, call *activitypub.Activity) error {
+	reply, to, err := bc.buc.Reply(c.Request().Context(), c.Param("username"), call)
 	if err != nil {
 		if reply != nil {
-			bc.buc.CancelReply(c.Request().Context(), reply)
+			err2 := bc.buc.CancelReply(c.Request().Context(), reply)
+			if err2 != nil {
+				return errors.Join(err, err2)
+			}
 		}
 		return err
 	}
@@ -88,9 +144,12 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 		if err != nil {
 			return err
 		}
-		return c.NoContent(http.StatusAccepted)
 	}
-	accept, to, err := bc.buc.AcceptFollowing(c.Request().Context(), c.Param("username"), postedActivity)
+	return c.NoContent(http.StatusAccepted)
+}
+
+func (bc BotController) handleFollow(c *echo.Context, follow *activitypub.Activity) error {
+	accept, to, err := bc.buc.AcceptFollowing(c.Request().Context(), c.Param("username"), follow)
 	if err != nil {
 		return err
 	}
@@ -99,16 +158,16 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 		if err != nil {
 			return err
 		}
-		return c.NoContent(http.StatusAccepted)
 	}
-	done, err := bc.buc.Unfollow(c.Request().Context(), c.Param("username"), postedActivity)
+	return c.NoContent(http.StatusAccepted)
+}
+
+func (bc BotController) handleUnfollow(c *echo.Context, unfollow *activitypub.Activity) error {
+	_, err := bc.buc.Unfollow(c.Request().Context(), c.Param("username"), unfollow)
 	if err != nil {
 		return err
 	}
-	if done {
-		return c.NoContent(http.StatusAccepted)
-	}
-	return echo.NewHTTPError(http.StatusUnprocessableEntity, "That activity is not accepted by this server")
+	return c.NoContent(http.StatusAccepted)
 }
 
 func (bc BotController) GetEndPoints(c *echo.Context) error {

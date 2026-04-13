@@ -13,7 +13,6 @@ import (
 	"github.com/Bokume2/reply_bot/internal/domain/repository"
 	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
 	"github.com/Bokume2/reply_bot/internal/interface/schema"
-	apUtil "github.com/Bokume2/reply_bot/pkg/activitypub"
 	htmlUtil "github.com/Bokume2/reply_bot/pkg/html"
 	"github.com/Bokume2/reply_bot/pkg/snowflake"
 
@@ -60,18 +59,8 @@ func (buc botUseCase) GetOutBox(ctx context.Context, username string) (*activity
 }
 
 func (buc botUseCase) AcceptFollowing(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.Accept, *activitypub.Actor, error) {
-	if activity.Type != activitypub.FollowType {
-		return nil, nil, nil
-	}
-	actorItem, err := apUtil.ResolveActivityPubLink(activity.Actor)
-	if err != nil {
-		return nil, nil, err
-	}
-	actor, err := activitypub.ToActor(actorItem)
-	if err != nil {
-		return nil, nil, err
-	}
-	_, err = buc.repo.AppendToFollowers(ctx, username, actor.GetID())
+	actor, _ := activitypub.ToActor(activity.Actor)
+	_, err := buc.repo.AppendToFollowers(ctx, username, actor.GetID())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -82,44 +71,14 @@ func (buc botUseCase) AcceptFollowing(ctx context.Context, username string, acti
 }
 
 func (buc botUseCase) Unfollow(ctx context.Context, username string, activity *activitypub.Activity) (done bool, err error) {
-	done = false
-	if activity.Type != activitypub.UndoType {
-		return
-	}
-	it, err := apUtil.ResolveActivityPubLink(activity.Object)
-	if err != nil {
-		return
-	}
-	follow, err := activitypub.ToActivity(it)
-	if err != nil {
-		return
-	} else if follow.Type != activitypub.FollowType {
-		return
-	} else if !activity.Actor.GetID().Equal(follow.Actor.GetID()) {
-		return
-	}
+	follow, _ := activitypub.ToActivity(activity.Object)
 	err = buc.repo.DeleteFromFollowers(ctx, username, follow.Actor.GetID())
 	done = true
 	return
 }
 
 func (buc botUseCase) Reply(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.Create, *activitypub.Actor, error) {
-	if activity.Type != activitypub.CreateType {
-		return nil, nil, nil
-	}
-	note, err := activitypub.ToObject(activity.Object)
-	if err != nil {
-		return nil, nil, err
-	}
-	if note.Type != activitypub.NoteType {
-		return nil, nil, nil
-	}
-	if !(activity.To.Contains(schema.UsernameToID(username)) ||
-		activity.Bto.Contains(schema.UsernameToID(username)) ||
-		activity.CC.Contains(schema.UsernameToID(username)) ||
-		activity.BCC.Contains(schema.UsernameToID(username))) {
-		return nil, nil, nil
-	}
+	note, _ := activitypub.ToObject(activity.Object)
 	content, err := htmlUtil.RemoveHtmlTagsWithRet(note.Content.String())
 	if err != nil {
 		return nil, nil, err
@@ -132,20 +91,9 @@ func (buc botUseCase) Reply(ctx context.Context, username string, activity *acti
 			replyCont = v.Reply
 		}
 	}
-	var to *activitypub.Actor
-	if activity.Actor.IsLink() {
-		toItem, err := apUtil.ResolveActivityPubLink(activity.Actor)
-		if err != nil {
-			return nil, nil, err
-		}
-		to, err = activitypub.ToActor(toItem)
-	} else {
-		to, err = activitypub.ToActor(activity.Actor)
-	}
-	if err != nil {
-		return nil, nil, err
-	}
 	if replyCont != "" {
+		to, _ := activitypub.ToActor(activity.Actor)
+
 		reply := activitypub.ObjectNew(activitypub.NoteType)
 		reply.Content.Set(activitypub.LangRef(language.Japanese), activitypub.Content(replyCont))
 		reply.AttributedTo = schema.UsernameToID(username)
