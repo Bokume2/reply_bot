@@ -133,7 +133,7 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 }
 
 func (bc BotController) handleReply(c *echo.Context, bot *activitypub.Actor, call *activitypub.Activity) error {
-	reply, to, err := bc.buc.Reply(c.Request().Context(), bot, call)
+	reply, err := bc.buc.Reply(c.Request().Context(), bot, call)
 	if err != nil {
 		if reply != nil {
 			err2 := bc.buc.CancelReply(c.Request().Context(), reply)
@@ -143,7 +143,8 @@ func (bc BotController) handleReply(c *echo.Context, bot *activitypub.Actor, cal
 		}
 		return err
 	}
-	if reply != nil && to != nil {
+	if reply != nil {
+		to, _ := activitypub.ToActor(call.Actor)
 		err = bc.postActivity(c.Request().Context(), reply, to)
 		if err != nil {
 			return err
@@ -153,11 +154,12 @@ func (bc BotController) handleReply(c *echo.Context, bot *activitypub.Actor, cal
 }
 
 func (bc BotController) handleFollow(c *echo.Context, bot *activitypub.Actor, follow *activitypub.Activity) error {
-	accept, to, err := bc.buc.AcceptFollowing(c.Request().Context(), bot, follow)
+	accept, err := bc.buc.AcceptFollowing(c.Request().Context(), bot, follow)
 	if err != nil {
 		return err
 	}
-	if accept != nil && to != nil {
+	if accept != nil {
+		to, _ := activitypub.ToActor(follow.Actor)
 		err = bc.postActivity(c.Request().Context(), accept, to)
 		if err != nil {
 			return err
@@ -167,7 +169,7 @@ func (bc BotController) handleFollow(c *echo.Context, bot *activitypub.Actor, fo
 }
 
 func (bc BotController) handleUnfollow(c *echo.Context, bot *activitypub.Actor, unfollow *activitypub.Activity) error {
-	_, err := bc.buc.Unfollow(c.Request().Context(), bot, unfollow)
+	err := bc.buc.Unfollow(c.Request().Context(), bot, unfollow)
 	if err != nil {
 		return err
 	}

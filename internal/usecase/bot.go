@@ -23,9 +23,9 @@ import (
 type IBotUseCase interface {
 	GetByUserName(ctx context.Context, username string) (*activitypub.Actor, error)
 	GetOutBox(ctx context.Context, bot *activitypub.Actor) (*activitypub.OrderedCollection, error)
-	AcceptFollowing(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (*activitypub.Accept, *activitypub.Actor, error)
-	Unfollow(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (bool, error)
-	Reply(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (*activitypub.Create, *activitypub.Actor, error)
+	AcceptFollowing(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (*activitypub.Accept, error)
+	Unfollow(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) error
+	Reply(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (*activitypub.Create, error)
 	CancelReply(ctx context.Context, activity *activitypub.Activity) error
 	GetAny(ctx context.Context, id activitypub.IRI) (activitypub.Item, error)
 }
@@ -57,30 +57,28 @@ func (buc botUseCase) GetOutBox(ctx context.Context, bot *activitypub.Actor) (*a
 	return outbox, nil
 }
 
-func (buc botUseCase) AcceptFollowing(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (*activitypub.Accept, *activitypub.Actor, error) {
+func (buc botUseCase) AcceptFollowing(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (*activitypub.Accept, error) {
 	actor, _ := activitypub.ToActor(activity.Actor)
 	_, err := buc.repo.AppendToFollowers(ctx, bot, actor.GetID())
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	accept := activitypub.AcceptNew(activitypub.EmptyID, activity)
 	accept.Actor = bot.ID
 	accept.Published = time.Now()
-	return accept, actor, nil
+	return accept, nil
 }
 
-func (buc botUseCase) Unfollow(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (done bool, err error) {
+func (buc botUseCase) Unfollow(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) error {
 	follow, _ := activitypub.ToActivity(activity.Object)
-	err = buc.repo.DeleteFromFollowers(ctx, bot, follow.Actor.GetID())
-	done = true
-	return
+	return buc.repo.DeleteFromFollowers(ctx, bot, follow.Actor.GetID())
 }
 
-func (buc botUseCase) Reply(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (*activitypub.Create, *activitypub.Actor, error) {
+func (buc botUseCase) Reply(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (*activitypub.Create, error) {
 	note, _ := activitypub.ToObject(activity.Object)
 	content, err := htmlUtil.RemoveHtmlTagsWithRet(note.Content.String())
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	mentionRegexp := fmt.Sprintf("@%s(@%s)?", bot.PreferredUsername, config.LocalDomain())
 	content = strings.TrimSpace(regexp.MustCompile(mentionRegexp).ReplaceAllString(content, ""))
@@ -91,8 +89,6 @@ func (buc botUseCase) Reply(ctx context.Context, bot *activitypub.Actor, activit
 		}
 	}
 	if replyCont != "" {
-		to, _ := activitypub.ToActor(activity.Actor)
-
 		reply := activitypub.ObjectNew(activitypub.NoteType)
 		reply.Content.Set(activitypub.LangRef(language.Japanese), activitypub.Content(replyCont))
 		reply.AttributedTo = bot.ID
@@ -106,7 +102,7 @@ func (buc botUseCase) Reply(ctx context.Context, bot *activitypub.Actor, activit
 		reply.ID = bot.ID.AddPath("/statuses", strconv.FormatUint(noteID, 10))
 		_, err = buc.repo.SaveAny(ctx, reply)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		replyAct := activitypub.CreateNew(reply.ID.AddPath("/activity"), reply)
@@ -116,16 +112,16 @@ func (buc botUseCase) Reply(ctx context.Context, bot *activitypub.Actor, activit
 		replyAct.CC = reply.CC
 		_, err = buc.repo.SaveAny(ctx, replyAct)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		_, err = buc.repo.AppendToOutBox(ctx, bot, replyAct)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
-		return replyAct, to, nil
+		return replyAct, nil
 	}
-	return nil, nil, nil
+	return nil, nil
 }
 
 func (buc botUseCase) CancelReply(ctx context.Context, activity *activitypub.Activity) error {
