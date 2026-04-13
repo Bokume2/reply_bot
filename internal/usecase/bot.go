@@ -25,10 +25,10 @@ import (
 type IBotUseCase interface {
 	GetByUserName(ctx context.Context, username string) (*activitypub.Actor, error)
 	GetOutBox(ctx context.Context, username string) (*activitypub.OrderedCollection, error)
-	AcceptFollowing(ctx context.Context, username string, item activitypub.Item) (*activitypub.Accept, *activitypub.Actor, error)
-	Unfollow(ctx context.Context, username string, item activitypub.Item) (bool, error)
-	Reply(ctx context.Context, username string, item activitypub.Item) (*activitypub.Create, *activitypub.Actor, error)
-	CancelReply(ctx context.Context, item activitypub.Item) error
+	AcceptFollowing(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.Accept, *activitypub.Actor, error)
+	Unfollow(ctx context.Context, username string, activity *activitypub.Activity) (bool, error)
+	Reply(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.Create, *activitypub.Actor, error)
+	CancelReply(ctx context.Context, activity *activitypub.Activity) error
 	GetAny(ctx context.Context, id activitypub.IRI) (activitypub.Item, error)
 }
 
@@ -59,11 +59,7 @@ func (buc botUseCase) GetOutBox(ctx context.Context, username string) (*activity
 	return bot, nil
 }
 
-func (buc botUseCase) AcceptFollowing(ctx context.Context, username string, item activitypub.Item) (*activitypub.Accept, *activitypub.Actor, error) {
-	activity, err := activitypub.ToActivity(item)
-	if err != nil {
-		return nil, nil, err
-	}
+func (buc botUseCase) AcceptFollowing(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.Accept, *activitypub.Actor, error) {
 	if activity.Type != activitypub.FollowType {
 		return nil, nil, nil
 	}
@@ -85,12 +81,8 @@ func (buc botUseCase) AcceptFollowing(ctx context.Context, username string, item
 	return accept, actor, nil
 }
 
-func (buc botUseCase) Unfollow(ctx context.Context, username string, item activitypub.Item) (done bool, err error) {
+func (buc botUseCase) Unfollow(ctx context.Context, username string, activity *activitypub.Activity) (done bool, err error) {
 	done = false
-	activity, err := activitypub.ToActivity(item)
-	if err != nil {
-		return
-	}
 	if activity.Type != activitypub.UndoType {
 		return
 	}
@@ -111,11 +103,7 @@ func (buc botUseCase) Unfollow(ctx context.Context, username string, item activi
 	return
 }
 
-func (buc botUseCase) Reply(ctx context.Context, username string, item activitypub.Item) (*activitypub.Create, *activitypub.Actor, error) {
-	activity, err := activitypub.ToActivity(item)
-	if err != nil {
-		return nil, nil, err
-	}
+func (buc botUseCase) Reply(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.Create, *activitypub.Actor, error) {
 	if activity.Type != activitypub.CreateType {
 		return nil, nil, nil
 	}
@@ -193,8 +181,8 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item activityp
 	return nil, nil, nil
 }
 
-func (buc botUseCase) CancelReply(ctx context.Context, item activitypub.Item) error {
-	return buc.repo.DeleteFromOutBox(ctx, item)
+func (buc botUseCase) CancelReply(ctx context.Context, activity *activitypub.Activity) error {
+	return buc.repo.DeleteFromOutBox(ctx, activity)
 }
 
 func (buc botUseCase) GetAny(ctx context.Context, id activitypub.IRI) (activitypub.Item, error) {
