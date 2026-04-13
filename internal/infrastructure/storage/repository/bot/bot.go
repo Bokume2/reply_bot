@@ -35,12 +35,9 @@ func (repo BotRepository) CreateBot(ctx context.Context, username, name string) 
 	actor.StartTime = now
 	actor.Updated = now
 	activitypub.Inbox.AddTo(actor)
-	_, err := repo.store.Save(activitypub.OrderedCollectionNew(actor.Inbox.GetID()))
-	if err != nil {
-		return nil, err
-	}
+	/* Inboxの実体は保存しない(エンドポイントとしてのみ用意) */
 	activitypub.Outbox.AddTo(actor)
-	_, err = repo.store.Save(activitypub.OrderedCollectionNew(actor.Outbox.GetID()))
+	_, err := repo.store.Save(activitypub.OrderedCollectionNew(actor.Outbox.GetID()))
 	if err != nil {
 		return nil, err
 	}
