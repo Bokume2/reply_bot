@@ -171,7 +171,7 @@ func (repo BotRepository) SaveAny(ctx context.Context, item activitypub.Item) (a
 }
 
 func (repo BotRepository) updateAvatarOfBot(bot *activitypub.Actor) (*activitypub.Actor, error) {
-	if !activitypub.IsNil(bot.Image) {
+	if !activitypub.IsNil(bot.Icon) {
 		return bot, nil
 	}
 	path := fmt.Sprintf("public/avatars/%s.jpg", bot.PreferredUsername.String())
