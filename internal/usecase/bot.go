@@ -116,10 +116,6 @@ func (buc botUseCase) Reply(ctx context.Context, username string, item activityp
 	if err != nil {
 		return nil, nil, err
 	}
-	_, err = buc.repo.AppendToInBox(ctx, username, activity)
-	if err != nil {
-		return nil, nil, err
-	}
 	if activity.Type != activitypub.CreateType {
 		return nil, nil, nil
 	}
