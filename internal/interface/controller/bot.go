@@ -48,7 +48,11 @@ func (bc BotController) GetByUserName(c *echo.Context) error {
 }
 
 func (bc BotController) GetOutBox(c *echo.Context) error {
-	outbox, err := bc.buc.GetOutBox(c.Request().Context(), c.Param("username"))
+	bot, err := bc.buc.GetByUserName(c.Request().Context(), c.Param("username"))
+	if err != nil {
+		return err
+	}
+	outbox, err := bc.buc.GetOutBox(c.Request().Context(), bot)
 	if err != nil {
 		return err
 	}
@@ -59,53 +63,117 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 	if c.Request().Header.Get(echo.HeaderContentType) != "application/activity+json" && c.Request().Header.Get(echo.HeaderContentType) != "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"" {
 		return echo.NewHTTPError(http.StatusUnsupportedMediaType, "expected application/activity+json")
 	}
-	var ab ActivityBinder
-	itemPtr := new(activitypub.Item)
-	if err := ab.Bind(c, itemPtr); err != nil {
+	ab := ActivityBinder{}
+	postedActivity := new(activitypub.Activity)
+	if err := ab.Bind(c, postedActivity); err != nil {
 		return err
 	}
-	reply, to, err := bc.buc.Reply(c.Request().Context(), c.Param("username"), *itemPtr)
+	it, err := apUtil.ResolveActivityPubLink(postedActivity.Actor)
 	if err != nil {
-		if reply != nil {
-			it := activitypub.Item(reply)
-			bc.buc.CancelReply(c.Request().Context(), it)
-		}
+		return echo.NewHTTPError(http.StatusForbidden, "Activity must have valid actor information")
+	}
+	postedActor, err := activitypub.ToActor(it)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusForbidden, "Activity must have valid actor information")
+	}
+	postedActivity.Actor = postedActor
+	if err = bc.verifyRequest(c.Request(), postedActor); err != nil {
 		return err
 	}
-	if reply != nil && to != nil {
-		err = bc.verifyRequest(c.Request(), to)
+	bot, err := bc.buc.GetByUserName(c.Request().Context(), c.Param("username"))
+	if err != nil {
+		return err
+	}
+	switch postedActivity.Type {
+	case activitypub.CreateType:
+		it, err := apUtil.ResolveActivityPubLink(postedActivity.Object)
 		if err != nil {
 			return err
 		}
+		note, err := activitypub.ToObject(it)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnprocessableEntity, "object of activity must be Object or Linke type")
+		}
+		postedActivity.Object = note
+		if note.Type != activitypub.NoteType {
+			return c.NoContent(http.StatusAccepted)
+		}
+		if !(postedActivity.To.Contains(bot.ID) ||
+			postedActivity.Bto.Contains(bot.ID) ||
+			postedActivity.CC.Contains(bot.ID) ||
+			postedActivity.BCC.Contains(bot.ID)) {
+			return c.NoContent(http.StatusAccepted)
+		}
+		return bc.handleReply(c, bot, postedActivity)
+	case activitypub.FollowType:
+		if !postedActivity.Object.GetID().Equal(bot.ID) {
+			return c.NoContent(http.StatusAccepted)
+		}
+		return bc.handleFollow(c, bot, postedActivity)
+	case activitypub.UndoType:
+		it, err := apUtil.ResolveActivityPubLink(postedActivity.Object)
+		if err != nil {
+			return err
+		}
+		follow, err := activitypub.ToActivity(it)
+		if err != nil {
+			return c.NoContent(http.StatusAccepted)
+		}
+		postedActivity.Object = follow
+		if follow.Type != activitypub.FollowType || !follow.Object.GetID().Equal(bot.ID) {
+			return c.NoContent(http.StatusAccepted)
+		}
+		if !postedActivity.Actor.GetID().Equal(follow.Actor.GetID()) {
+			return echo.NewHTTPError(http.StatusUnprocessableEntity, "Actor of Undo activity must be same to actor of object of activity")
+		}
+		return bc.handleUnfollow(c, bot, postedActivity)
+	default:
+		return c.NoContent(http.StatusAccepted)
+	}
+}
+
+func (bc BotController) handleReply(c *echo.Context, bot *activitypub.Actor, call *activitypub.Activity) error {
+	reply, err := bc.buc.Reply(c.Request().Context(), bot, call)
+	if err != nil {
+		if reply != nil {
+			err2 := bc.buc.CancelReply(c.Request().Context(), reply)
+			if err2 != nil {
+				return errors.Join(err, err2)
+			}
+		}
+		return err
+	}
+	if reply != nil {
+		to, _ := activitypub.ToActor(call.Actor)
 		err = bc.postActivity(c.Request().Context(), reply, to)
 		if err != nil {
 			return err
 		}
-		return c.NoContent(http.StatusAccepted)
 	}
-	accept, to, err := bc.buc.AcceptFollowing(c.Request().Context(), c.Param("username"), *itemPtr)
+	return c.NoContent(http.StatusAccepted)
+}
+
+func (bc BotController) handleFollow(c *echo.Context, bot *activitypub.Actor, follow *activitypub.Activity) error {
+	accept, err := bc.buc.AcceptFollowing(c.Request().Context(), bot, follow)
 	if err != nil {
 		return err
 	}
-	if accept != nil && to != nil {
-		err = bc.verifyRequest(c.Request(), to)
-		if err != nil {
-			return err
-		}
+	if accept != nil {
+		to, _ := activitypub.ToActor(follow.Actor)
 		err = bc.postActivity(c.Request().Context(), accept, to)
 		if err != nil {
 			return err
 		}
-		return c.NoContent(http.StatusAccepted)
 	}
-	done, err := bc.buc.Unfollow(c.Request().Context(), c.Param("username"), *itemPtr)
+	return c.NoContent(http.StatusAccepted)
+}
+
+func (bc BotController) handleUnfollow(c *echo.Context, bot *activitypub.Actor, unfollow *activitypub.Activity) error {
+	err := bc.buc.Unfollow(c.Request().Context(), bot, unfollow)
 	if err != nil {
 		return err
 	}
-	if done {
-		return c.NoContent(http.StatusAccepted)
-	}
-	return echo.NewHTTPError(http.StatusUnprocessableEntity, "That activity is not accepted by this server")
+	return c.NoContent(http.StatusAccepted)
 }
 
 func (bc BotController) GetEndPoints(c *echo.Context) error {
@@ -121,7 +189,11 @@ func (bc BotController) GetEndPoints(c *echo.Context) error {
 
 type ActivityBinder struct{}
 
-func (ab ActivityBinder) Bind(c *echo.Context, itemPtr *activitypub.Item) error {
+func (ab ActivityBinder) Bind(c *echo.Context, target any) error {
+	trgt, ok := target.(*activitypub.Activity)
+	if !ok {
+		return errors.New("ActivityBinder only supports binding to *activitypub.Activity")
+	}
 	body, err := io.ReadAll(c.Request().Body)
 	if err != nil {
 		return err
@@ -130,11 +202,15 @@ func (ab ActivityBinder) Bind(c *echo.Context, itemPtr *activitypub.Item) error 
 	if err != nil {
 		return err
 	}
-	i, err := activitypub.UnmarshalJSON(compacted)
+	it, err := activitypub.UnmarshalJSON(compacted)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnsupportedMediaType, "failed to convert request body to activity")
 	}
-	*itemPtr = i
+	activity, err := activitypub.ToActivity(it)
+	if err != nil {
+		return err
+	}
+	*trgt = *activity
 	return nil
 }
 
