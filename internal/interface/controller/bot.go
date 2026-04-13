@@ -48,7 +48,11 @@ func (bc BotController) GetByUserName(c *echo.Context) error {
 }
 
 func (bc BotController) GetOutBox(c *echo.Context) error {
-	outbox, err := bc.buc.GetOutBox(c.Request().Context(), c.Param("username"))
+	bot, err := bc.buc.GetByUserName(c.Request().Context(), c.Param("username"))
+	if err != nil {
+		return err
+	}
+	outbox, err := bc.buc.GetOutBox(c.Request().Context(), bot)
 	if err != nil {
 		return err
 	}
@@ -100,12 +104,12 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 			postedActivity.BCC.Contains(bot.ID)) {
 			return c.NoContent(http.StatusAccepted)
 		}
-		return bc.handleReply(c, postedActivity)
+		return bc.handleReply(c, bot, postedActivity)
 	case activitypub.FollowType:
 		if !postedActivity.Object.GetID().Equal(bot.ID) {
 			return c.NoContent(http.StatusAccepted)
 		}
-		return bc.handleFollow(c, postedActivity)
+		return bc.handleFollow(c, bot, postedActivity)
 	case activitypub.UndoType:
 		it, err := apUtil.ResolveActivityPubLink(postedActivity.Object)
 		if err != nil {
@@ -122,14 +126,14 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 		if !postedActivity.Actor.GetID().Equal(follow.Actor.GetID()) {
 			return echo.NewHTTPError(http.StatusUnprocessableEntity, "Actor of Undo activity must be same to actor of object of activity")
 		}
-		return bc.handleUnfollow(c, postedActivity)
+		return bc.handleUnfollow(c, bot, postedActivity)
 	default:
 		return c.NoContent(http.StatusAccepted)
 	}
 }
 
-func (bc BotController) handleReply(c *echo.Context, call *activitypub.Activity) error {
-	reply, to, err := bc.buc.Reply(c.Request().Context(), c.Param("username"), call)
+func (bc BotController) handleReply(c *echo.Context, bot *activitypub.Actor, call *activitypub.Activity) error {
+	reply, to, err := bc.buc.Reply(c.Request().Context(), bot, call)
 	if err != nil {
 		if reply != nil {
 			err2 := bc.buc.CancelReply(c.Request().Context(), reply)
@@ -148,8 +152,8 @@ func (bc BotController) handleReply(c *echo.Context, call *activitypub.Activity)
 	return c.NoContent(http.StatusAccepted)
 }
 
-func (bc BotController) handleFollow(c *echo.Context, follow *activitypub.Activity) error {
-	accept, to, err := bc.buc.AcceptFollowing(c.Request().Context(), c.Param("username"), follow)
+func (bc BotController) handleFollow(c *echo.Context, bot *activitypub.Actor, follow *activitypub.Activity) error {
+	accept, to, err := bc.buc.AcceptFollowing(c.Request().Context(), bot, follow)
 	if err != nil {
 		return err
 	}
@@ -162,8 +166,8 @@ func (bc BotController) handleFollow(c *echo.Context, follow *activitypub.Activi
 	return c.NoContent(http.StatusAccepted)
 }
 
-func (bc BotController) handleUnfollow(c *echo.Context, unfollow *activitypub.Activity) error {
-	_, err := bc.buc.Unfollow(c.Request().Context(), c.Param("username"), unfollow)
+func (bc BotController) handleUnfollow(c *echo.Context, bot *activitypub.Actor, unfollow *activitypub.Activity) error {
+	_, err := bc.buc.Unfollow(c.Request().Context(), bot, unfollow)
 	if err != nil {
 		return err
 	}

@@ -84,11 +84,7 @@ func (repo BotRepository) GetByUserName(ctx context.Context, username string) (*
 	return bot, nil
 }
 
-func (repo BotRepository) GetOutBox(ctx context.Context, username string) (*activitypub.OrderedCollection, error) {
-	bot, err := repo.GetByUserName(ctx, username)
-	if err != nil {
-		return nil, err
-	}
+func (repo BotRepository) GetOutBox(ctx context.Context, bot *activitypub.Actor) (*activitypub.OrderedCollection, error) {
 	item, err := repo.store.Load(bot.Outbox.GetID())
 	if err != nil {
 		return nil, err
@@ -100,11 +96,7 @@ func (repo BotRepository) GetOutBox(ctx context.Context, username string) (*acti
 	return outbox, nil
 }
 
-func (repo BotRepository) AppendToFollowers(ctx context.Context, username string, id activitypub.IRI) (*activitypub.OrderedCollection, error) {
-	bot, err := repo.GetByUserName(ctx, username)
-	if err != nil {
-		return nil, err
-	}
+func (repo BotRepository) AppendToFollowers(ctx context.Context, bot *activitypub.Actor, id activitypub.IRI) (*activitypub.OrderedCollection, error) {
 	item, err := repo.store.Load(bot.Followers.GetID())
 	if err != nil {
 		return nil, err
@@ -124,11 +116,7 @@ func (repo BotRepository) AppendToFollowers(ctx context.Context, username string
 	return followers, nil
 }
 
-func (repo BotRepository) DeleteFromFollowers(ctx context.Context, username string, id activitypub.IRI) error {
-	bot, err := repo.GetByUserName(ctx, username)
-	if err != nil {
-		return err
-	}
+func (repo BotRepository) DeleteFromFollowers(ctx context.Context, bot *activitypub.Actor, id activitypub.IRI) error {
 	item, err := repo.store.Load(bot.Followers.GetID())
 	if err != nil {
 		return err
@@ -142,11 +130,7 @@ func (repo BotRepository) DeleteFromFollowers(ctx context.Context, username stri
 	return err
 }
 
-func (repo BotRepository) AppendToOutBox(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.OrderedCollection, error) {
-	bot, err := repo.GetByUserName(ctx, username)
-	if err != nil {
-		return nil, err
-	}
+func (repo BotRepository) AppendToOutBox(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (*activitypub.OrderedCollection, error) {
 	item, err := repo.store.Load(bot.Outbox.GetID())
 	if err != nil {
 		return nil, err

@@ -12,7 +12,6 @@ import (
 	"github.com/Bokume2/reply_bot/internal/domain/errors"
 	"github.com/Bokume2/reply_bot/internal/domain/repository"
 	"github.com/Bokume2/reply_bot/internal/infrastructure/config"
-	"github.com/Bokume2/reply_bot/internal/interface/schema"
 	htmlUtil "github.com/Bokume2/reply_bot/pkg/html"
 	"github.com/Bokume2/reply_bot/pkg/snowflake"
 
@@ -23,10 +22,10 @@ import (
 
 type IBotUseCase interface {
 	GetByUserName(ctx context.Context, username string) (*activitypub.Actor, error)
-	GetOutBox(ctx context.Context, username string) (*activitypub.OrderedCollection, error)
-	AcceptFollowing(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.Accept, *activitypub.Actor, error)
-	Unfollow(ctx context.Context, username string, activity *activitypub.Activity) (bool, error)
-	Reply(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.Create, *activitypub.Actor, error)
+	GetOutBox(ctx context.Context, bot *activitypub.Actor) (*activitypub.OrderedCollection, error)
+	AcceptFollowing(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (*activitypub.Accept, *activitypub.Actor, error)
+	Unfollow(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (bool, error)
+	Reply(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (*activitypub.Create, *activitypub.Actor, error)
 	CancelReply(ctx context.Context, activity *activitypub.Activity) error
 	GetAny(ctx context.Context, id activitypub.IRI) (activitypub.Item, error)
 }
@@ -50,40 +49,40 @@ func (buc botUseCase) GetByUserName(ctx context.Context, username string) (*acti
 	return bot, nil
 }
 
-func (buc botUseCase) GetOutBox(ctx context.Context, username string) (*activitypub.OrderedCollection, error) {
-	bot, err := buc.repo.GetOutBox(ctx, username)
+func (buc botUseCase) GetOutBox(ctx context.Context, bot *activitypub.Actor) (*activitypub.OrderedCollection, error) {
+	outbox, err := buc.repo.GetOutBox(ctx, bot)
 	if err != nil {
 		return nil, err
 	}
-	return bot, nil
+	return outbox, nil
 }
 
-func (buc botUseCase) AcceptFollowing(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.Accept, *activitypub.Actor, error) {
+func (buc botUseCase) AcceptFollowing(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (*activitypub.Accept, *activitypub.Actor, error) {
 	actor, _ := activitypub.ToActor(activity.Actor)
-	_, err := buc.repo.AppendToFollowers(ctx, username, actor.GetID())
+	_, err := buc.repo.AppendToFollowers(ctx, bot, actor.GetID())
 	if err != nil {
 		return nil, nil, err
 	}
 	accept := activitypub.AcceptNew(activitypub.EmptyID, activity)
-	accept.Actor = schema.UsernameToID(username)
+	accept.Actor = bot.ID
 	accept.Published = time.Now()
 	return accept, actor, nil
 }
 
-func (buc botUseCase) Unfollow(ctx context.Context, username string, activity *activitypub.Activity) (done bool, err error) {
+func (buc botUseCase) Unfollow(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (done bool, err error) {
 	follow, _ := activitypub.ToActivity(activity.Object)
-	err = buc.repo.DeleteFromFollowers(ctx, username, follow.Actor.GetID())
+	err = buc.repo.DeleteFromFollowers(ctx, bot, follow.Actor.GetID())
 	done = true
 	return
 }
 
-func (buc botUseCase) Reply(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.Create, *activitypub.Actor, error) {
+func (buc botUseCase) Reply(ctx context.Context, bot *activitypub.Actor, activity *activitypub.Activity) (*activitypub.Create, *activitypub.Actor, error) {
 	note, _ := activitypub.ToObject(activity.Object)
 	content, err := htmlUtil.RemoveHtmlTagsWithRet(note.Content.String())
 	if err != nil {
 		return nil, nil, err
 	}
-	mentionRegexp := fmt.Sprintf("@%s(@%s)?", username, config.LocalDomain())
+	mentionRegexp := fmt.Sprintf("@%s(@%s)?", bot.PreferredUsername, config.LocalDomain())
 	content = strings.TrimSpace(regexp.MustCompile(mentionRegexp).ReplaceAllString(content, ""))
 	replyCont := ""
 	for _, v := range config.Dialogues() {
@@ -96,22 +95,22 @@ func (buc botUseCase) Reply(ctx context.Context, username string, activity *acti
 
 		reply := activitypub.ObjectNew(activitypub.NoteType)
 		reply.Content.Set(activitypub.LangRef(language.Japanese), activitypub.Content(replyCont))
-		reply.AttributedTo = schema.UsernameToID(username)
+		reply.AttributedTo = bot.ID
 		reply.InReplyTo = note.ID
 		reply.To.Append(activitypub.PublicNS)
-		reply.CC.Append(schema.UsernameToID(username).AddPath(string(activitypub.Followers)))
+		reply.CC.Append(bot.ID.AddPath(string(activitypub.Followers)))
 		reply.CC.Append(activity.Actor.GetID())
 		reply.URL = reply.ID
 		reply.Published = time.Now()
 		noteID := snowflake.TimeToSnowflake(reply.Published, uint16(rand.UintN(0x100)))
-		reply.ID = schema.UsernameToID(username).AddPath("/statuses", strconv.FormatUint(noteID, 10))
+		reply.ID = bot.ID.AddPath("/statuses", strconv.FormatUint(noteID, 10))
 		_, err = buc.repo.SaveAny(ctx, reply)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		replyAct := activitypub.CreateNew(reply.ID.AddPath("/activity"), reply)
-		replyAct.Actor = schema.UsernameToID(username)
+		replyAct.Actor = bot.ID
 		replyAct.Published = reply.Published
 		replyAct.To = reply.To
 		replyAct.CC = reply.CC
@@ -120,7 +119,7 @@ func (buc botUseCase) Reply(ctx context.Context, username string, activity *acti
 			return nil, nil, err
 		}
 
-		_, err = buc.repo.AppendToOutBox(ctx, username, replyAct)
+		_, err = buc.repo.AppendToOutBox(ctx, bot, replyAct)
 		if err != nil {
 			return nil, nil, err
 		}
