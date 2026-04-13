@@ -64,6 +64,18 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 	if err := ab.Bind(c, postedActivity); err != nil {
 		return err
 	}
+	it, err := apUtil.ResolveActivityPubLink(postedActivity.Actor)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusForbidden, "Activity must have valid actor information")
+	}
+	postedActor, err := activitypub.ToActor(it)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusForbidden, "Activity must have valid actor information")
+	}
+	postedActivity.Actor = postedActor
+	if err = bc.verifyRequest(c.Request(), postedActor); err != nil {
+		return err
+	}
 	reply, to, err := bc.buc.Reply(c.Request().Context(), c.Param("username"), postedActivity)
 	if err != nil {
 		if reply != nil {
@@ -72,10 +84,6 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 		return err
 	}
 	if reply != nil && to != nil {
-		err = bc.verifyRequest(c.Request(), to)
-		if err != nil {
-			return err
-		}
 		err = bc.postActivity(c.Request().Context(), reply, to)
 		if err != nil {
 			return err
@@ -87,10 +95,6 @@ func (bc BotController) PostInBox(c *echo.Context) error {
 		return err
 	}
 	if accept != nil && to != nil {
-		err = bc.verifyRequest(c.Request(), to)
-		if err != nil {
-			return err
-		}
 		err = bc.postActivity(c.Request().Context(), accept, to)
 		if err != nil {
 			return err
