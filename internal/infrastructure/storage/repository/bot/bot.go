@@ -35,12 +35,9 @@ func (repo BotRepository) CreateBot(ctx context.Context, username, name string) 
 	actor.StartTime = now
 	actor.Updated = now
 	activitypub.Inbox.AddTo(actor)
-	_, err := repo.store.Save(activitypub.OrderedCollectionNew(actor.Inbox.GetID()))
-	if err != nil {
-		return nil, err
-	}
+	/* Inboxの実体は保存しない(エンドポイントとしてのみ用意) */
 	activitypub.Outbox.AddTo(actor)
-	_, err = repo.store.Save(activitypub.OrderedCollectionNew(actor.Outbox.GetID()))
+	_, err := repo.store.Save(activitypub.OrderedCollectionNew(actor.Outbox.GetID()))
 	if err != nil {
 		return nil, err
 	}
@@ -143,30 +140,6 @@ func (repo BotRepository) DeleteFromFollowers(ctx context.Context, username stri
 	followers.Remove(id)
 	_, err = repo.store.Save(followers)
 	return err
-}
-
-func (repo BotRepository) AppendToInBox(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.OrderedCollection, error) {
-	bot, err := repo.GetByUserName(ctx, username)
-	if err != nil {
-		return nil, err
-	}
-	item, err := repo.store.Load(bot.Inbox.GetID())
-	if err != nil {
-		return nil, err
-	}
-	inbox, err := activitypub.ToOrderedCollection(item)
-	if err != nil {
-		return nil, err
-	}
-	err = inbox.Append(activity)
-	if err != nil {
-		return nil, err
-	}
-	_, err = repo.store.Save(inbox)
-	if err != nil {
-		return nil, err
-	}
-	return inbox, nil
 }
 
 func (repo BotRepository) AppendToOutBox(ctx context.Context, username string, activity *activitypub.Activity) (*activitypub.OrderedCollection, error) {
