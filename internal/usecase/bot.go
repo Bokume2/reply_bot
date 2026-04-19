@@ -80,7 +80,7 @@ func (buc botUseCase) Reply(ctx context.Context, bot *activitypub.Actor, activit
 	if err != nil {
 		return nil, err
 	}
-	mentionRegexp := fmt.Sprintf("@%s(@%s)?", bot.PreferredUsername, config.LocalDomain())
+	mentionRegexp := fmt.Sprintf("@%s(@%s)?", bot.PreferredUsername.String(), config.LocalDomain())
 	content = strings.TrimSpace(regexp.MustCompile(mentionRegexp).ReplaceAllString(content, ""))
 	replyCont := ""
 	for _, v := range config.Dialogues() {
